@@ -66,7 +66,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="flex flex-col w-full md:w-1/2 lg:w-2/5 xl:w-1/3 mx-auto p-8 md:p-10 lg:p-12 xl:p-14 bg-[#07063f] rounded-2xl shadow-xl">
+      <div className="flex flex-col w-full md:w-1/2 lg:w-2/5 xl:w-1/3 mx-auto p-8 md:p-10 lg:p-12 xl:p-14 bg-[#ffffff] rounded-2xl shadow-xl">
         <div className="flex flex-row gap-3 pb-4">
           <div>
             <img src="/images/leoni-logo.png" alt="Logo" width="125" />
