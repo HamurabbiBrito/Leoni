@@ -1,7 +1,7 @@
 // Función para buscar un empleado por número
 export const fetchEmpleado = async (numero) => {
   try {
-    const response = await fetch(`/api/checadas/numero?numero=${numero}`);
+    const response = await fetch(`/api/nueva-pagina/empleados/consultas/numero?numero=${numero}`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Error al obtener los datos del empleado");
@@ -18,7 +18,7 @@ export const registrarChecada = async (checadaData) => {
   try {
     console.log("Datos enviados:", checadaData); // Depuración
 
-    const response = await fetch('/api/checadas/checada', {
+    const response = await fetch('/api/nueva-pagina/empleados/consultas/checada', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

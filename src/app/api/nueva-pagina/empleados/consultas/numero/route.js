@@ -1,4 +1,4 @@
-import { executeQuery } from '../../../../lib/db';
+import { executeQuery } from '../../../../../../lib/db';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);

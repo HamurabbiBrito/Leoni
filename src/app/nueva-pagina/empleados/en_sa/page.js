@@ -19,7 +19,7 @@ export default function RegistroEntradasSalidas() {
   const fetchRegistros = async () => {
     try {
       // Construir la URL de la API con los parámetros de consulta
-      let url = `/api/checadas?numero=${empleadoNumero}`;
+      let url = `/api/nueva-pagina/empleados/consultas?numero=${empleadoNumero}`;
 
       // Si el rango de fechas está habilitado y se proporcionan fechas, agregarlas a la URL
       if (habilitarFechas && fechaInicio && fechaFin) {
@@ -55,7 +55,7 @@ export default function RegistroEntradasSalidas() {
   // Función para obtener los últimos 50 registros
   const fetchUltimosRegistros = async () => {
     try {
-      const url = `/api/checadas?limit=50`; // Nueva ruta para obtener los últimos 50 registros
+      const url = `/api/nueva-pagina/empleados/consultas?limit=50`; // Nueva ruta para obtener los últimos 50 registros
       const response = await fetch(url);
 
       if (!response.ok) {

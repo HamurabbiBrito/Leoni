@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import ModalActualizarEmpleado from "../../../../components/modals/modal_mod_info_empleados";
+import ModalActualizarEmpleado from "./components/modals/modal_mod_info_empleados";
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
@@ -31,7 +31,7 @@ export default function Empleados() {
     const fetchEmpleados = async () => {
       try {
         const response = await fetch(
-          `/api/empleados?page=${page}&pageSize=${pageSize}&search=${searchTerm}&registroStatus=${registroStatus}&brigadaChecked=${brigadaChecked}`
+          `/api/nueva-pagina/empleados/lista?page=${page}&pageSize=${pageSize}&search=${searchTerm}&registroStatus=${registroStatus}&brigadaChecked=${brigadaChecked}`
         );
         if (!response.ok) {
           throw new Error("Error al obtener los empleados");

@@ -11,7 +11,7 @@ export default function Empleados() {
   // Función para obtener los datos de la API
   const fetchData = async () => {
     try {
-      const response = await fetch("/api/empleados/consultas");
+      const response = await fetch("/api/nueva-pagina/empleados");
       if (!response.ok) {
         throw new Error("Error al obtener los datos");
       }
