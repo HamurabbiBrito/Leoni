@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Component from "@/components/comp-42"; // Datepicker
-import Checkbox from "@/components/cons_emp/Checkbox"; // Usa mayúscula
-import ModalRegistrarChecada from "@/components/modals/modal_reg_checada";
+import Component from "@/app/nueva-pagina/empleados/en_sa/components/comp-42"; // Datepicker
+import Checkbox from "@/app/nueva-pagina/empleados/en_sa/components/cons_emp/Checkbox"; // Usa mayúscula
+import ModalRegistrarChecada from "@/app/nueva-pagina/empleados/en_sa/components/modals/modal_reg_checada";
 
 export default function RegistroEntradasSalidas() {
   const [empleadoNumero, setEmpleadoNumero] = useState(""); // Estado para el número de empleado

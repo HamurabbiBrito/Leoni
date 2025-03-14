@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { fetchEmpleado, registrarChecada } from '../../services/checadaService';
+import { fetchEmpleado, registrarChecada } from '../../../../../../services/checadaService';
 
 const ModalRegistrarChecada = ({ isOpen, onClose, onChecadaGuardada }) => {
   const [numero, setNumero] = useState("");
