@@ -71,17 +71,17 @@ export default function Home() {
           <div>
             <img src="/images/leoni-logo.png" alt="Logo" width="125" />
           </div>
-          <h1 className="text-2xl font-bold text-[#fefefe] my-auto">Control Caseta</h1>
+          <h1 className="text-2xl font-bold text-[#00158a] my-auto">Control Caseta</h1>
         </div>
-        <div className="text-xs font-light text-[#f2f2f2] pb-8">
+        <div className="text-xs font-light text-[#00158a] pb-8">
           El usuario y contraseña son sensibles a las mayúsculas
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="pb-2">
-            <label htmlFor="email" className="block mb-2 text-base font-medium text-[#f0f0f0]">
+            <label htmlFor="email" className="block mb-2 text-base font-medium text-[#00158a]">
               Email
             </label>
-            <div className="relative text-gray-400">
+            <div className="relative text-[#00158a]">
               <span className="absolute inset-y-0 left-0 flex items-center p-1 pl-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@ export default function Home() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="pl-12 mb-2 bg-gray-50 text-gray-600 border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
+                className="pl-12 mb-2 bg-gray-50text-[#00158a] border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
                 placeholder="Nombre de usuario"
                 autoComplete="off"
                 required
@@ -113,10 +113,10 @@ export default function Home() {
             </div>
           </div>
           <div className="pb-6">
-            <label htmlFor="password" className="block mb-2 text-base font-medium text-[#f0f0f0]">
+            <label htmlFor="password" className="block mb-2 text-base font-medium text-[#00158a]">
               Password
             </label>
-            <div className="relative text-gray-400">
+            <div className="relative text-[#00158a]">
               <span className="absolute inset-y-0 left-0 flex items-center p-1 pl-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +142,7 @@ export default function Home() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-12 mb-2 bg-gray-50 text-gray-600 border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
+                className="pl-12 mb-2 bg-gray-50 text-[#00158a] border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
                 placeholder="••••••••••"
                 autoComplete="new-password"
                 required

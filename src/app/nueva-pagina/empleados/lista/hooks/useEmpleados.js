@@ -11,21 +11,23 @@ export default function useEmpleados() {
   const [brigadaChecked, setBrigadaChecked] = useState(false);
   const pageSize = 20;
 
-  useEffect(() => {
-    const fetchEmpleados = async () => {
-      try {
-        const response = await fetch(
-          `/api/nueva-pagina/empleados/lista?page=${page}&pageSize=${pageSize}&search=${searchTerm}&registroStatus=${registroStatus}&brigadaChecked=${brigadaChecked}`
-        );
-        if (!response.ok) throw new Error("Error al obtener los empleados");
-        const data = await response.json();
-        setEmpleados(data.empleados);
-        setTotalPages(data.totalPages || 1);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
+  // Función para obtener la lista de empleados
+  const fetchEmpleados = async () => {
+    try {
+      const response = await fetch(
+        `/api/nueva-pagina/empleados/lista?page=${page}&pageSize=${pageSize}&search=${searchTerm}&registroStatus=${registroStatus}&brigadaChecked=${brigadaChecked}`
+      );
+      if (!response.ok) throw new Error("Error al obtener los empleados");
+      const data = await response.json();
+      setEmpleados(data.empleados);
+      setTotalPages(data.totalPages || 1);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
+  // Llamar a fetchEmpleados cuando cambien los filtros o la página
+  useEffect(() => {
     fetchEmpleados();
   }, [page, searchTerm, registroStatus, brigadaChecked, pageSize]);
 
@@ -41,5 +43,6 @@ export default function useEmpleados() {
     brigadaChecked,
     setBrigadaChecked,
     setPage,
+    fetchEmpleados, // Exportar fetchEmpleados para usarla manualmente
   };
 }

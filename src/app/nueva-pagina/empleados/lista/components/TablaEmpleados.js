@@ -9,7 +9,7 @@ export default function TablaEmpleados({ empleados, openModal }) {
               <th className="px-4 py-2 text-left text-black">Nombre</th>
               <th className="px-4 py-2 text-left text-black">Estado</th>
               <th className="px-4 py-2 text-left text-black">Brigada</th>
-              <th className="px-4 py-2 text-left text-black">Clasificacion</th>
+              <th className="px-4 py-2 text-left text-black">Clasificación</th>
             </tr>
           </thead>
           <tbody>
