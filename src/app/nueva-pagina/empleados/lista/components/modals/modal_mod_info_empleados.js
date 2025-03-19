@@ -4,76 +4,109 @@ import InputField from './InputField';
 import CheckboxField from './CheckboxField';
 import MensajeCard from '@/components/MensajeCard'; // Importar el componente de mensaje
 
-const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensajeGlobal }) => {
+const ModalActualizarEmpleado = ({
+  isOpen,
+  onClose,
+  empleado, // Empleado existente (para modo actualización)
+  onUpdate, // Función para actualizar la lista de empleados
+  setMensajeGlobal, // Función para mostrar mensajes globales
+  modo = 'actualizar', // Modo del modal: 'actualizar' o 'registrar'
+}) => {
   // Estados del formulario
-  const [area, setArea] = useState(empleado ? empleado.area : '');
+  const [numero, setNumero] = useState(empleado ? empleado.numero : '');
+  const [nombre, setNombre] = useState(empleado ? empleado.nombre : '');
+  const [area, setArea] = useState(empleado ? empleado.id_area : '');
   const [clasificacion, setClasificacion] = useState(empleado ? empleado.clasificacion : '');
-  const [puesto, setPuesto] = useState(empleado ? empleado.puesto : '');
+  const [puesto, setPuesto] = useState(empleado ? empleado.puesto : 'Operador'); // Valor por defecto: 'Operador'
   const [accesoRestringido, setAccesoRestringido] = useState(false);
-  const [darDeBaja, setDarDeBaja] = useState(empleado ? empleado.estado === 'Baja' : false); // Inicializar según el estado del empleado
+  const [darDeBaja, setDarDeBaja] = useState(empleado ? empleado.estado === 'Baja' : false);
   const [areasOptions, setAreasOptions] = useState([]);
 
-  // Obtener las áreas y el área del empleado al abrir el modal
+  // Obtener las áreas al abrir el modal
   useEffect(() => {
-    if (isOpen && empleado) {
-      fetchAreasAndEmpleadoArea();
+    if (isOpen) {
+      fetchAreas();
     }
-  }, [isOpen, empleado]);
+  }, [isOpen]);
 
-  // Función para obtener todas las áreas y el área del empleado
-  const fetchAreasAndEmpleadoArea = async () => {
+  // Función para obtener todas las áreas y el área actual del empleado (si existe)
+  const fetchAreas = async () => {
     try {
-      const response = await fetch(`/api/nueva-pagina/empleados/lista/areas?numero=${empleado.numero}`);
+      const url = `/api/nueva-pagina/empleados/lista/areas${empleado ? `?numero=${empleado.numero}` : ''}`;
+      const response = await fetch(url);
       const data = await response.json();
 
-      if (data.areas && data.areaEmpleado) {
+      if (data.areas) {
         setAreasOptions(data.areas.map((area) => ({ value: area.id_area, label: area.area })));
-        setArea(data.areaEmpleado.id_area);
+      }
+
+      if (data.areaEmpleado) {
+        setArea(data.areaEmpleado.id_area); // Establecer el área actual del empleado
       }
     } catch (error) {
-      console.error('Error al obtener las áreas y el área del empleado:', error);
+      console.error('Error al obtener las áreas:', error);
+      setMensajeGlobal({ tipo: 'error', mensaje: 'Error al obtener las áreas' });
     }
   };
 
   // Función para manejar el guardado de los datos
   const handleGuardar = async () => {
     try {
+      // Validar campos obligatorios
+      console.log("Valores de los campos:", { nombre, area, clasificacion, puesto });
+      if (!nombre || !area || !clasificacion || !puesto || puesto === '') {
+        throw new Error('Todos los campos son obligatorios');
+      }
+  
       // Determinar el estado basado en el checkbox "Dar de baja"
       const estado = darDeBaja ? 'Baja' : 'Activo';
-
+  
       // Datos a enviar
-      const datosActualizados = {
-        numero: empleado.numero,
+      const datosEmpleado = {
+        // Solo incluir el número en modo actualización
+        ...(modo === 'actualizar' && { numero: empleado.numero }), // Usar el número del empleado existente en modo actualización
+        nombre,
         id_area: area,
-        clasificacion: clasificacion,
-        estado: estado,
+        clasificacion,
+        puesto,
+        estado,
       };
-
+  
+      // URL y método HTTP según el modo
+      const url =
+        modo === 'registrar'
+          ? '/api/nueva-pagina/empleados/lista/registrar'
+          : '/api/nueva-pagina/empleados/lista/actualizar';
+      const method = modo === 'registrar' ? 'POST' : 'PUT';
+  
       // Enviar los datos al backend
-      const response = await fetch('/api/nueva-pagina/empleados/lista/actualizar', {
-        method: 'PUT',
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(datosActualizados),
+        body: JSON.stringify(datosEmpleado),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al actualizar el empleado');
+        throw new Error(errorData.error || `Error al ${modo === 'registrar' ? 'registrar' : 'actualizar'} el empleado`);
       }
-
+  
       const resultado = await response.json();
-      console.log('Empleado actualizado:', resultado);
-
+      console.log('Empleado guardado:', resultado);
+  
       // Mostrar mensaje de éxito global
-      setMensajeGlobal({ tipo: 'exito', mensaje: 'Empleado actualizado correctamente' });
-
+      setMensajeGlobal({
+        tipo: 'exito',
+        mensaje: `Empleado ${modo === 'registrar' ? 'registrado' : 'actualizado'} correctamente`,
+      });
+  
       // Cerrar el modal después de guardar
       setTimeout(() => {
         onClose();
       }, 2000); // Cerrar el modal después de 2 segundos
-
+  
       // Actualizar la lista de empleados
       if (onUpdate) {
         onUpdate(); // Llama a la función de actualización
@@ -84,22 +117,27 @@ const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensa
     }
   };
 
-  // Actualizar el estado cuando el empleado cambie
+  // Actualizar el estado cuando el empleado cambie (solo en modo actualización)
   useEffect(() => {
-    if (isOpen && empleado) {
+    if (isOpen && empleado && modo === 'actualizar') {
+      setNumero(empleado.numero);
+      setNombre(empleado.nombre);
+      setArea(empleado.id_area);
       setClasificacion(empleado.clasificacion);
-      setPuesto(empleado.puesto);
+      setPuesto(empleado.puesto || 'Operador'); // Asegúrate de que `puesto` tenga un valor por defecto
       setAccesoRestringido(false);
-      setDarDeBaja(empleado.estado === 'Baja'); // Establecer el checkbox según el estado del empleado
+      setDarDeBaja(empleado.estado === 'Baja');
+      console.log("Estados inicializados:", { numero, nombre, area, clasificacion, puesto });
     }
-  }, [isOpen, empleado]);
+  }, [isOpen, empleado, modo]);
 
-  if (!empleado) {
+  if (!isOpen) {
     return null;
   }
 
   // Opciones para los campos de selección
   const clasificacionOptions = [
+    { value: 'A', label: 'Seleccione una opcion' },
     { value: 'Administrativo', label: 'Administrativo' },
     { value: 'Directo', label: 'Directo' },
     { value: 'Indirecto', label: 'Indirecto' },
@@ -114,7 +152,9 @@ const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensa
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
-        <h2 className="text-xl font-bold mb-6">Actualizar Información</h2>
+        <h2 className="text-xl font-bold mb-6">
+          {modo === 'registrar' ? 'Registrar Nuevo Empleado' : 'Actualizar Información'}
+        </h2>
         <div className="flex gap-8">
           {/* Columna izquierda: Imagen y campos de solo lectura */}
           <div className="w-1/2">
@@ -127,13 +167,14 @@ const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensa
             </div>
             <InputField
               label="Número de empleado"
-              value={empleado.numero}
-              disabled
+              value={numero}
+              onChange={(e) => setNumero(e.target.value)}
+              disabled={modo === 'actualizar'} // Deshabilitar en modo actualización
             />
             <InputField
               label="Nombre"
-              value={empleado.nombre}
-              disabled
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
             />
           </div>
 
@@ -168,8 +209,9 @@ const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensa
               />
               <CheckboxField
                 label="Dar de Baja"
-                checked={darDeBaja} // El checkbox se marca automáticamente si el empleado está de baja
+                checked={darDeBaja}
                 onChange={(e) => setDarDeBaja(e.target.checked)}
+                disabled={modo === 'registrar'} // Deshabilitar en modo registro
               />
             </div>
           </div>
@@ -187,7 +229,7 @@ const ModalActualizarEmpleado = ({ isOpen, onClose, empleado, onUpdate, setMensa
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={handleGuardar}
           >
-            Guardar
+            {modo === 'registrar' ? 'Registrar' : 'Guardar'}
           </button>
         </div>
       </Modal>

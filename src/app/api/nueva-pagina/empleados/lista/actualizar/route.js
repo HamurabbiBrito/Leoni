@@ -1,12 +1,12 @@
-// app/api/nueva-pagina/empleados/actualizar/route.js
 import { executeQuery } from '@/lib/db';
 
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { numero, id_area, clasificacion, estado } = body;
+    const { numero, id_area, clasificacion, puesto, estado } = body;
 
-    if (!numero || !id_area || !clasificacion || !estado) {
+    // Validar campos obligatorios
+    if (!numero || !id_area || !clasificacion || !puesto || puesto === '' || !estado) {
       return new Response(JSON.stringify({ error: 'Datos incompletos' }), {
         status: 400,
         headers: {
@@ -18,11 +18,11 @@ export async function PUT(request) {
     // Consulta para actualizar el empleado
     const query = `
       UPDATE "Empleados"
-      SET id_area = $1, clasificacion = $2, estado = $3
-      WHERE numero = $4
+      SET id_area = $1, clasificacion = $2, puesto = $3, estado = $4
+      WHERE numero = $5
       RETURNING *;
     `;
-    const result = await executeQuery(query, [id_area, clasificacion, estado, numero]);
+    const result = await executeQuery(query, [id_area, clasificacion, puesto, estado, numero]);
 
     if (result.length === 0) {
       return new Response(JSON.stringify({ error: 'Empleado no encontrado' }), {

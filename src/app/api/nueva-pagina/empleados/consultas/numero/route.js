@@ -12,13 +12,14 @@ export async function GET(request) {
 
   try {
     const query = `
-     SELECT 
+      SELECT 
           "Empleados".nombre,
-          "RegEmp".registro,
           "Empleados".clasificacion,
+          "Empleados".puesto,
+          "RegEmp".registro,
           "RegEmp".tipo
       FROM "Empleados"
-      INNER JOIN "RegEmp" ON "Empleados".numero = "RegEmp".numero
+      LEFT JOIN "RegEmp" ON "Empleados".numero = "RegEmp".numero
       WHERE "Empleados".numero = $1
       ORDER BY "RegEmp".fecha DESC
       LIMIT 1;
@@ -32,7 +33,16 @@ export async function GET(request) {
       });
     }
 
-    return new Response(JSON.stringify(result[0]), {
+    // Si no hay registros en "RegEmp", los campos relacionados serán null
+    const empleado = {
+      nombre: result[0].nombre,
+      clasificacion: result[0].clasificacion,
+      puesto: result[0].puesto,
+      registro: result[0].registro || null, // Si no hay registro, será null
+      tipo: result[0].tipo || 'Checada', // Si no hay tipo, será null
+    };
+
+    return new Response(JSON.stringify(empleado), {
       status: 200,
     });
   } catch (error) {

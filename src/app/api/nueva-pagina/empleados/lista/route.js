@@ -15,7 +15,7 @@ export async function GET(req) {
 
     // Construir la consulta SQL con filtros
     let query = `
-      SELECT "numero", "nombre","brigada" ,"estado","clasificacion"
+      SELECT "numero", "nombre","brigada" ,"estado","clasificacion","puesto"
       FROM "Empleados"
       WHERE 1=1
     `;

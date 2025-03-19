@@ -28,12 +28,23 @@ export default function Empleados() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmpleado, setSelectedEmpleado] = useState(null);
   const [mensajeGlobal, setMensajeGlobal] = useState(null); // Estado para el mensaje global
+  const [modoModal, setModoModal] = useState("actualizar"); // Modo del modal: 'actualizar' o 'registrar'
 
-  const openModal = (empleado) => {
+  // Abrir el modal en modo "actualizar"
+  const openModalActualizar = (empleado) => {
     setSelectedEmpleado(empleado);
+    setModoModal("actualizar");
     setIsModalOpen(true);
   };
 
+  // Abrir el modal en modo "registrar"
+  const openModalRegistrar = () => {
+    setSelectedEmpleado(null); // No hay empleado seleccionado
+    setModoModal("registrar");
+    setIsModalOpen(true);
+  };
+
+  // Cerrar el modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedEmpleado(null);
@@ -47,6 +58,14 @@ export default function Empleados() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Empleados</h1>
 
+      {/* Botón para abrir el modal en modo "registrar" */}
+      <button
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        onClick={openModalRegistrar}
+      >
+        Registrar Nuevo Empleado
+      </button>
+
       <Filtros
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -56,19 +75,19 @@ export default function Empleados() {
         setBrigadaChecked={setBrigadaChecked}
       />
 
-      <TablaEmpleados empleados={empleados} openModal={openModal} />
+      <TablaEmpleados empleados={empleados} openModal={openModalActualizar} />
 
       <Paginacion page={page} totalPages={totalPages} setPage={setPage} />
 
-      {selectedEmpleado && (
-        <ModalModInfoEmpleado
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          empleado={selectedEmpleado}
-          setMensajeGlobal={setMensajeGlobal} // Pasar setMensajeGlobal al modal
-          onUpdate={fetchEmpleados} // Pasar fetchEmpleados como onUpdate
-        />
-      )}
+      {/* Modal para actualizar o registrar empleados */}
+      <ModalModInfoEmpleado
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        empleado={selectedEmpleado} // Pasar el empleado seleccionado (solo en modo actualizar)
+        onUpdate={fetchEmpleados} // Función para actualizar la lista de empleados
+        setMensajeGlobal={setMensajeGlobal} // Función para mostrar mensajes globales
+        modo={modoModal} // Modo del modal: 'actualizar' o 'registrar'
+      />
 
       {/* Mostrar MensajeCard como mensaje global */}
       {mensajeGlobal && (
