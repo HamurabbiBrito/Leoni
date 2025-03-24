@@ -10,7 +10,7 @@ export async function GET() {
 
     // Consulta para brigada (registro "S")
     const brigada = await executeQuery(
-      `SELECT COUNT(*) AS count FROM "Empleados" WHERE registro = 'E' AND estado = 'Activo'` 
+      `SELECT COUNT(*) AS count FROM "Empleados" WHERE registro = 'E' AND estado = 'Activo' AND brigada = 'S'` 
     );
 
     // Consulta para el total de empleados activos

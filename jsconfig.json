@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      //"@lib/*": ["src/lib/*"]
-
+      "@services/*": ["./src/services/*"]
     }
-  }
+  },
+  "exclude": ["node_modules"]
 }

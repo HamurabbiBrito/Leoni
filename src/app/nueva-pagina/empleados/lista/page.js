@@ -1,4 +1,3 @@
-// src/app/nueva-pagina/empleados/lista/page.js
 "use client";
 
 import { useState } from "react";
@@ -21,6 +20,8 @@ export default function Empleados() {
     setRegistroStatus,
     brigadaChecked,
     setBrigadaChecked,
+    estadoChecked,
+    setEstadoChecked, // Asegúrate de que setEstadoChecked esté definido aquí
     setPage,
     fetchEmpleados, // Usar fetchEmpleados del hook
   } = useEmpleados();
@@ -66,6 +67,7 @@ export default function Empleados() {
         Registrar Nuevo Empleado
       </button>
 
+      {/* Pasar setEstadoChecked como prop al componente Filtros */}
       <Filtros
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -73,6 +75,9 @@ export default function Empleados() {
         setRegistroStatus={setRegistroStatus}
         brigadaChecked={brigadaChecked}
         setBrigadaChecked={setBrigadaChecked}
+        estadoChecked={estadoChecked}
+        setEstadoChecked={setEstadoChecked} // Pasar setEstadoChecked aquí
+        setPage={setPage}
       />
 
       <TablaEmpleados empleados={empleados} openModal={openModalActualizar} />

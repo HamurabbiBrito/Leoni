@@ -21,6 +21,7 @@ const ModalActualizarEmpleado = ({
   const [accesoRestringido, setAccesoRestringido] = useState(false);
   const [darDeBaja, setDarDeBaja] = useState(empleado ? empleado.estado === 'Baja' : false);
   const [areasOptions, setAreasOptions] = useState([]);
+  const [foto, setFoto] = useState('/images/logo.png'); // Estado para la foto del empleado
 
   // Obtener las áreas al abrir el modal
   useEffect(() => {
@@ -49,71 +50,19 @@ const ModalActualizarEmpleado = ({
     }
   };
 
-  // Función para manejar el guardado de los datos
-  const handleGuardar = async () => {
+  const obtenerFoto = async (numeroEmpleado) => {
     try {
-      // Validar campos obligatorios
-      console.log("Valores de los campos:", { nombre, area, clasificacion, puesto });
-      if (!nombre || !area || !clasificacion || !puesto || puesto === '') {
-        throw new Error('Todos los campos son obligatorios');
-      }
-  
-      // Determinar el estado basado en el checkbox "Dar de baja"
-      const estado = darDeBaja ? 'Baja' : 'Activo';
-  
-      // Datos a enviar
-      const datosEmpleado = {
-        // Solo incluir el número en modo actualización
-        ...(modo === 'actualizar' && { numero: empleado.numero }), // Usar el número del empleado existente en modo actualización
-        nombre,
-        id_area: area,
-        clasificacion,
-        puesto,
-        estado,
-      };
-  
-      // URL y método HTTP según el modo
-      const url =
-        modo === 'registrar'
-          ? '/api/nueva-pagina/empleados/lista/registrar'
-          : '/api/nueva-pagina/empleados/lista/actualizar';
-      const method = modo === 'registrar' ? 'POST' : 'PUT';
-  
-      // Enviar los datos al backend
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosEmpleado),
-      });
-  
+      const response = await fetch(`/api/test?numeroEmpleado=${numeroEmpleado}`);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error al ${modo === 'registrar' ? 'registrar' : 'actualizar'} el empleado`);
+        throw new Error('Error al obtener la foto');
       }
-  
-      const resultado = await response.json();
-      console.log('Empleado guardado:', resultado);
-  
-      // Mostrar mensaje de éxito global
-      setMensajeGlobal({
-        tipo: 'exito',
-        mensaje: `Empleado ${modo === 'registrar' ? 'registrado' : 'actualizado'} correctamente`,
-      });
-  
-      // Cerrar el modal después de guardar
-      setTimeout(() => {
-        onClose();
-      }, 2000); // Cerrar el modal después de 2 segundos
-  
-      // Actualizar la lista de empleados
-      if (onUpdate) {
-        onUpdate(); // Llama a la función de actualización
+      const data = await response.json();
+      if (data.foto) {
+        setFoto(data.foto); // Actualizar el estado con la ruta de la foto
       }
     } catch (error) {
-      console.error('Error al guardar los cambios:', error);
-      setMensajeGlobal({ tipo: 'error', mensaje: error.message });
+      console.error('Error al obtener la foto:', error);
+      setMensajeGlobal({ tipo: 'error', mensaje: 'Error al obtener la foto del empleado' });
     }
   };
 
@@ -127,9 +76,81 @@ const ModalActualizarEmpleado = ({
       setPuesto(empleado.puesto || 'Operador'); // Asegúrate de que `puesto` tenga un valor por defecto
       setAccesoRestringido(false);
       setDarDeBaja(empleado.estado === 'Baja');
+
+      // Obtener la foto del empleado
+      obtenerFoto(empleado.numero);
+
       console.log("Estados inicializados:", { numero, nombre, area, clasificacion, puesto });
     }
   }, [isOpen, empleado, modo]);
+
+  // Función para manejar el guardado de los datos
+  const handleGuardar = async () => {
+    try {
+      // Validar campos obligatorios
+      console.log("Valores de los campos:", { nombre, area, clasificacion, puesto });
+      if (!nombre || !area || !clasificacion || !puesto || puesto === '') {
+        throw new Error('Todos los campos son obligatorios');
+      }
+
+      // Determinar el estado basado en el checkbox "Dar de baja"
+      const estado = darDeBaja ? 'Baja' : 'Activo';
+
+      // Datos a enviar
+      const datosEmpleado = {
+        // Solo incluir el número en modo actualización
+        ...(modo === 'actualizar' && { numero: empleado.numero }), // Usar el número del empleado existente en modo actualización
+        nombre,
+        id_area: area,
+        clasificacion,
+        puesto,
+        estado,
+      };
+
+      // URL y método HTTP según el modo
+      const url =
+        modo === 'registrar'
+          ? '/api/nueva-pagina/empleados/lista/registrar'
+          : '/api/nueva-pagina/empleados/lista/actualizar';
+      const method = modo === 'registrar' ? 'POST' : 'PUT';
+
+      // Enviar los datos al backend
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosEmpleado),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error al ${modo === 'registrar' ? 'registrar' : 'actualizar'} el empleado`);
+      }
+
+      const resultado = await response.json();
+      console.log('Empleado guardado:', resultado);
+
+      // Mostrar mensaje de éxito global
+      setMensajeGlobal({
+        tipo: 'exito',
+        mensaje: `Empleado ${modo === 'registrar' ? 'registrado' : 'actualizado'} correctamente`,
+      });
+
+      // Cerrar el modal después de guardar
+      setTimeout(() => {
+        onClose();
+      }, 2000); // Cerrar el modal después de 2 segundos
+
+      // Actualizar la lista de empleados
+      if (onUpdate) {
+        onUpdate(); // Llama a la función de actualización
+      }
+    } catch (error) {
+      console.error('Error al guardar los cambios:', error);
+      setMensajeGlobal({ tipo: 'error', mensaje: error.message });
+    }
+  };
 
   if (!isOpen) {
     return null;
@@ -160,7 +181,7 @@ const ModalActualizarEmpleado = ({
           <div className="w-1/2">
             <div className="mb-6 flex justify-center">
               <img
-                src="/images/logo.png"
+                src={foto} // Usar el estado `foto`
                 alt="Empleado"
                 className="w-32 h-32 rounded-md"
               />
@@ -175,6 +196,7 @@ const ModalActualizarEmpleado = ({
               label="Nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
+              disabled={modo === 'actualizar'} // Deshabilitar en modo actualización
             />
           </div>
 

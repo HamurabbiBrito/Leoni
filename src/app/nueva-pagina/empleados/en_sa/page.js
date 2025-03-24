@@ -1,7 +1,6 @@
-// app/nueva-pagina/empleados/en-sa/page.js
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useRegistros from "./hooks/useRegistros";
 import Filtros from "./components/Filtros";
 import InfoEmpleado from "./components/InfoEmpleado";
@@ -25,6 +24,33 @@ export default function RegistroEntradasSalidas() {
   } = useRegistros();
 
   const [isModalRegChecadaOpen, setIsModalRegChecadaOpen] = useState(false);
+  const [fotoEmpleado, setFotoEmpleado] = useState("/images/leoni-logo.png"); // Estado para la foto del empleado
+
+  // Función para obtener la foto del empleado
+  const obtenerFotoEmpleado = async (numeroEmpleado) => {
+    try {
+      const response = await fetch(`/api/test?numeroEmpleado=${numeroEmpleado}`);
+      if (!response.ok) {
+        throw new Error('Error al obtener la foto');
+      }
+      const data = await response.json();
+      if (data.foto) {
+        setFotoEmpleado(data.foto); // Actualizar el estado con la ruta de la foto
+      }
+    } catch (error) {
+      console.error('Error al obtener la foto:', error);
+      setFotoEmpleado("/images/leoni-logo.png"); // Usar la foto por defecto en caso de error
+    }
+  };
+
+  // Efecto para obtener la foto cuando cambia el número de empleado
+  useEffect(() => {
+    if (empleadoNumero) {
+      obtenerFotoEmpleado(empleadoNumero);
+    } else {
+      setFotoEmpleado("/images/leoni-logo.png"); // Restablecer la foto por defecto si no hay número de empleado
+    }
+  }, [empleadoNumero]);
 
   const handleFechaChange = (rango) => {
     const startDate = rango.startDate.toISOString().split("T")[0];
@@ -51,7 +77,7 @@ export default function RegistroEntradasSalidas() {
       <div className="bg-white shadow-md rounded-lg p-6 mt-4">
         <div className="flex flex-col md:flex-row items-start space-x-0 md:space-x-6 bg-blue-50 p-6 rounded-lg shadow-md">
           <img
-            src="/images/leoni-logo.png"
+            src={fotoEmpleado} // Usar el estado `fotoEmpleado`
             alt="Empleado"
             className="w-24 h-24 rounded-lg border-2 border-blue-200 mb-4 md:mb-0"
           />

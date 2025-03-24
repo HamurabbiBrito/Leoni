@@ -155,7 +155,7 @@ export default function Home() {
             className="w-full text-[#FFFFFF] bg-[#3028bf] focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-6"
             disabled={isLoading}
           >
-            {isLoading ? "Cargando..." : "Login"}
+            {isLoading ? "Cargando..." : "Log In"}
           </button>
         </form>
       </div>
