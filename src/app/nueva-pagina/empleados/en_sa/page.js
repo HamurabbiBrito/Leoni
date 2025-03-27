@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Cambiado a next/navigation
 import useRegistros from "./hooks/useRegistros";
 import Filtros from "./components/Filtros";
 import InfoEmpleado from "./components/InfoEmpleado";
@@ -8,6 +9,9 @@ import TablaRegistros from "./components/TablaRegistros";
 import ModalRegistrarChecada from "./components/modals/modal_reg_checada";
 
 export default function RegistroEntradasSalidas() {
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
   const {
     empleadoNumero,
     setEmpleadoNumero,
@@ -24,7 +28,12 @@ export default function RegistroEntradasSalidas() {
   } = useRegistros();
 
   const [isModalRegChecadaOpen, setIsModalRegChecadaOpen] = useState(false);
-  const [fotoEmpleado, setFotoEmpleado] = useState("/images/leoni-logo.png"); // Estado para la foto del empleado
+  const [fotoEmpleado, setFotoEmpleado] = useState("/images/leoni-logo.png");
+
+  // Efecto para marcar cuando el componente está montado
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Función para obtener la foto del empleado
   const obtenerFotoEmpleado = async (numeroEmpleado) => {
@@ -35,11 +44,11 @@ export default function RegistroEntradasSalidas() {
       }
       const data = await response.json();
       if (data.foto) {
-        setFotoEmpleado(data.foto); // Actualizar el estado con la ruta de la foto
+        setFotoEmpleado(data.foto);
       }
     } catch (error) {
       console.error('Error al obtener la foto:', error);
-      setFotoEmpleado("/images/leoni-logo.png"); // Usar la foto por defecto en caso de error
+      setFotoEmpleado("/images/leoni-logo.png");
     }
   };
 
@@ -48,7 +57,7 @@ export default function RegistroEntradasSalidas() {
     if (empleadoNumero) {
       obtenerFotoEmpleado(empleadoNumero);
     } else {
-      setFotoEmpleado("/images/leoni-logo.png"); // Restablecer la foto por defecto si no hay número de empleado
+      setFotoEmpleado("/images/leoni-logo.png");
     }
   }, [empleadoNumero]);
 
@@ -63,21 +72,42 @@ export default function RegistroEntradasSalidas() {
   const closeModalRegChecada = () => setIsModalRegChecadaOpen(false);
   const handleChecadaGuardada = () => fetchUltimosRegistros();
 
+  const redirectToRegistrar = () => {
+    if (mounted) {
+      router.push('./en_sa/checadas');
+    }
+  };
+
+  // Evitar renderizado hasta que el componente esté montado
+  if (!mounted) {
+    return <div className="p-4">Cargando...</div>;
+  }
+
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center border-b pb-4">
         <h1 className="text-2xl font-bold">Consulta Entradas y Salidas</h1>
-        <button
-          onClick={openModalRegChecada}
-          className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-        >
-          Registrar Checada
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={openModalRegChecada}
+            className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+          >
+            Registrar Checada
+          </button>
+
+          <button
+            onClick={redirectToRegistrar}
+            className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+          >
+            Registrar 
+          </button>
+        </div>
       </div>
+      
       <div className="bg-white shadow-md rounded-lg p-6 mt-4">
         <div className="flex flex-col md:flex-row items-start space-x-0 md:space-x-6 bg-blue-50 p-6 rounded-lg shadow-md">
           <img
-            src={fotoEmpleado} // Usar el estado `fotoEmpleado`
+            src={fotoEmpleado}
             alt="Empleado"
             className="w-24 h-24 rounded-lg border-2 border-blue-200 mb-4 md:mb-0"
           />
@@ -94,6 +124,7 @@ export default function RegistroEntradasSalidas() {
         </div>
         <TablaRegistros registros={registros} />
       </div>
+      
       <ModalRegistrarChecada
         isOpen={isModalRegChecadaOpen}
         onClose={closeModalRegChecada}

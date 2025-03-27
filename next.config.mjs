@@ -7,7 +7,8 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(process.cwd(), 'src'),
-      '@services': path.resolve(process.cwd(), 'src/services')
+      '@services': path.resolve(process.cwd(), 'src/services'),
+      '@utils': path.resolve(process.cwd(), 'src/utils')
     };
     return config;
   }

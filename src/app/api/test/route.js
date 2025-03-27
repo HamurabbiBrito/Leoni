@@ -3,43 +3,40 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-console.log("✅ API Route cargada correctamente"); // Log para depuración
-
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const numeroEmpleado = searchParams.get('numeroEmpleado');
 
-  console.log("Número de empleado recibido:", numeroEmpleado); // Log para depuración
-
   if (!numeroEmpleado) {
     return NextResponse.json(
-      { error: 'El número de empleado es requerido' },
-      { status: 400 }
+      { foto: '/images/leoni-logo.png' },
+      { status: 200 }
     );
   }
 
   try {
-    // Ruta de la carpeta donde se almacenan las fotos
     const FOTOS_DIR = path.join(process.cwd(), 'public', 'fotos');
-
-    // Construir la ruta de la foto
     const rutaFoto = path.join(FOTOS_DIR, `${numeroEmpleado}.png`);
+    const rutaDefault = path.join(FOTOS_DIR, 'default.png');
 
-    console.log("Ruta de la foto:", rutaFoto); // Log para depuración
-
-    // Verificar si la foto existe
+    // Verificar si existe la foto específica
     if (fs.existsSync(rutaFoto)) {
-      // Devolver la ruta de la foto (relativa a la carpeta pública)
       return NextResponse.json({ foto: `/fotos/${numeroEmpleado}.png` });
-    } else {
-      // Si no existe la foto, devolver la foto por defecto
+    }
+    
+    // Verificar si existe la foto por defecto
+    if (fs.existsSync(rutaDefault)) {
       return NextResponse.json({ foto: '/fotos/default.png' });
     }
+
+    // Si no existe ninguna, devolver el logo
+    return NextResponse.json({ foto: '/images/leoni-logo.png' });
+
   } catch (error) {
-    console.error('❌ Error al obtener la foto del empleado:', error);
+    console.error('Error en endpoint de fotos:', error);
     return NextResponse.json(
-      { error: 'Error al obtener la foto del empleado' },
-      { status: 500 }
+      { foto: '/images/leoni-logo.png' },
+      { status: 200 }
     );
   }
 }

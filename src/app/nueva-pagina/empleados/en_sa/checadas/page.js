@@ -1,12 +1,14 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import { obtenerFechaHoraLocal } from '@services/dateTimeService';
+import { normalizeEmployeeNumber } from '@utils/normalizeEmployeeNumber';
+
 
 const RegistroChecadaPage = () => {
   // Estados
   const [numeroEmpleado, setNumeroEmpleado] = useState('');
   const [empleado, setEmpleado] = useState({
-    foto: "/images/leoni-logo.png",
+    foto: "/images/leoni-logo.png", // Foto por defecto inicial
     nombre: "",
     clasificacion: "",
     puesto: "",
@@ -31,11 +33,23 @@ const RegistroChecadaPage = () => {
     setTimeout(() => setMensaje({ texto: '', tipo: '' }), 5000);
   };
 
+  // Función para obtener la foto del empleado
+  const obtenerFotoEmpleado = async (numero) => {
+    try {
+      const response = await fetch(`/api/test?numeroEmpleado=${numero}`);
+      if (!response.ok) {
+        throw new Error("Error al obtener foto");
+      }
+      const data = await response.json();
+      return data.foto || "/images/leoni-logo.png"; // Fallback a logo si no hay foto
+    } catch (error) {
+      console.error("Error obteniendo foto:", error);
+      return "/images/leoni-logo.png"; // Fallback a logo en caso de error
+    }
+  };
+
   const determinarTipoRegistro = (ultimoRegistro) => {
-    // Si no hay último registro, comenzamos con Entrada ('E')
     if (!ultimoRegistro) return 'E';
-    
-    // Alternamos entre Entrada y Salida
     return ultimoRegistro === 'E' ? 'S' : 'E';
   };
 
@@ -49,21 +63,26 @@ const RegistroChecadaPage = () => {
     mostrarMensaje('', '');
 
     try {
-      // 1. Buscar información del empleado
-      const empleadoResponse = await fetch(`/api/nueva-pagina/empleados/consultas/numero?numero=${numeroEmpleado.trim()}`);
+      // 1. Buscar información del empleado y foto en paralelo
+      const [empleadoResponse, registroResponse, foto] = await Promise.all([
+        fetch(`/api/nueva-pagina/empleados/consultas/numero?numero=${numeroEmpleado.trim()}`),
+        fetch(`/api/nueva-pagina/empleados/consultas/ultimo-registro?numero=${numeroEmpleado.trim()}`),
+        obtenerFotoEmpleado(numeroEmpleado.trim())
+      ]);
+
       if (!empleadoResponse.ok) throw new Error("Empleado no encontrado.");
-      const empleadoData = await empleadoResponse.json();
-
-      // 2. Consultar el último registro
-      const registroResponse = await fetch(`/api/nueva-pagina/empleados/consultas/ultimo-registro?numero=${numeroEmpleado.trim()}`);
       if (!registroResponse.ok) throw new Error("Error al consultar historial.");
-      const ultimoRegistroData = await registroResponse.json();
 
-      // 3. Determinar el tipo de registro (corregido)
-      const nuevoTipoRegistro = determinarTipoRegistro(ultimoRegistroData.registro);
+      const [empleadoData, ultimoRegistroData] = await Promise.all([
+        empleadoResponse.json(),
+        registroResponse.json()
+      ]);
+
+      // 2. Determinar el tipo de registro
+      const nuevoTipoRegistro = determinarTipoRegistro(ultimoRegistroData?.registro);
       const { isoString, now } = obtenerFechaHoraLocal();
 
-      // 4. Registrar la checada
+      // 3. Registrar la checada
       const checadaResponse = await fetch('/api/nueva-pagina/empleados/consultas/checada', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,9 +98,9 @@ const RegistroChecadaPage = () => {
       const checadaData = await checadaResponse.json();
       if (!checadaResponse.ok) throw new Error(checadaData.error || "Error al registrar la checada");
 
-      // Actualizar estado
+      // Actualizar estado con la foto obtenida
       setEmpleado({
-        foto: empleadoData.foto || "/images/leoni-logo.png",
+        foto: foto, // Usamos la foto obtenida del servicio
         nombre: empleadoData.nombre,
         clasificacion: empleadoData.clasificacion || "",
         puesto: empleadoData.puesto || "",
@@ -90,7 +109,11 @@ const RegistroChecadaPage = () => {
       });
 
       mostrarMensaje(
-        `Registro de ${nuevoTipoRegistro === 'E' ? 'entrada' : 'salida'} exitoso a las ${now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
+        `Registro de ${nuevoTipoRegistro === 'E' ? 'entrada' : 'salida'} exitoso a las ${now.toLocaleTimeString('es-MX', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: true 
+        })}`,
         "success"
       );
       
@@ -109,6 +132,15 @@ const RegistroChecadaPage = () => {
       seleccionarTexto();
     }
   };
+
+ // Función para manejar el cambio en el input
+ const handleNumeroChange = (e) => {
+  const rawValue = e.target.value;
+  const normalized = normalizeEmployeeNumber(rawValue);
+  setNumeroEmpleado(normalized);
+};
+
+
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -159,10 +191,11 @@ const RegistroChecadaPage = () => {
             <div className="flex items-center space-x-6">
               <img
                 src={empleado.foto}
-                alt="Foto del empleado"
-                className="w-64 h-64 rounded-full border-4 border-blue-200"
+                alt={`Foto de ${empleado.nombre}`}
+                className="w-64 h-64 border-4 border-blue-200 object-cover"
                 onError={(e) => {
                   e.target.src = "/images/leoni-logo.png";
+                  e.target.className = "w-64 h-64 rounded-full border-4 border-blue-200";
                 }}
               />
               <div>

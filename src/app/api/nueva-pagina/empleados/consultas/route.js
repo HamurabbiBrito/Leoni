@@ -14,7 +14,7 @@ export async function GET(request) {
 
     // Construir la consulta SQL base
     let query = `
-      SELECT e.nombre, r.registro, r.fecha, r.clasificacion, r.tipo 
+      SELECT e.numero ,e.nombre, r.registro, r.fecha, r.clasificacion, r.tipo 
       FROM "RegEmp" r 
       INNER JOIN "Empleados" e ON e.numero = r.numero
     `;

@@ -5,6 +5,7 @@ export default function TablaRegistros({ registros }) {
         <table className="min-w-full table-auto even">
           <thead>
             <tr className="bg-gray-200">
+            <th className="border p-2">Numero</th>
               <th className="border p-2">Nombre</th>
               <th className="border p-2">Fecha</th>
               <th className="border p-2">Registro</th>
@@ -16,6 +17,7 @@ export default function TablaRegistros({ registros }) {
             {registros.length > 0 ? (
               registros.map((registro, index) => (
                 <tr key={index} className="bg-white text-center">
+                  <td className="border p-2">{registro.numero}</td>
                   <td className="border p-2">{registro.nombre}</td>
                   <td className="border p-2">{new Date(registro.fecha).toLocaleString()}</td>
                   <td className="border p-2">{registro.registro}</td>

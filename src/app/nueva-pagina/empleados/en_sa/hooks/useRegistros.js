@@ -32,7 +32,7 @@ export default function useRegistros() {
 
   const fetchUltimosRegistros = async () => {
     try {
-      const url = `/api/nueva-pagina/empleados/consultas?limit=50`;
+      const url = `/api/nueva-pagina/empleados/consultas?limit=13`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Error al obtener los registros");
       const data = await response.json();

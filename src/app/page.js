@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // Para redirigir después del login
+import Image from "next/image";
+import Leoni from 'public/Images/leoni-logo.png'
 
-export default function Home() {
+export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // Para manejar el mensaje de error
@@ -65,99 +67,80 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="flex flex-col w-full md:w-1/2 lg:w-2/5 xl:w-1/3 mx-auto p-8 md:p-10 lg:p-12 xl:p-14 bg-[#ffffff] rounded-2xl shadow-xl">
-        <div className="flex flex-row gap-3 pb-4">
-          <div>
-            <img src="/images/leoni-logo.png" alt="Logo" width="125" />
-          </div>
-          <h1 className="text-2xl font-bold text-[#00158a] my-auto">Control Caseta</h1>
+    <div className="h-screen place-content-center">  
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <Image
+            alt="Leoni"
+            src={Leoni}
+            className="mx-auto h-10 w-auto"
+            loading="eager" 
+          />
+          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+            Caseta
+          </h2>
         </div>
-        <div className="text-xs font-light text-[#00158a] pb-8">
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+            <div className="text-s font-light text-[#00158a] pb-8">
           El usuario y contraseña son sensibles a las mayúsculas
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="pb-2">
-            <label htmlFor="email" className="block mb-2 text-base font-medium text-[#00158a]">
-              Email
-            </label>
-            <div className="relative text-[#00158a]">
-              <span className="absolute inset-y-0 left-0 flex items-center p-1 pl-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-mail" 
-                >
-                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                </svg>
-              </span>
-              <input
-                type="text"
-                name="username"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-12 mb-2 bg-gray-50text-[#00158a] border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
-                placeholder="Nombre de usuario"
-                autoComplete="off"
-                required
-              />
+              <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+                Nombre de Usuario
+              </label>
+              <div className="mt-2">
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="Nombre de usuario"
+                  autoComplete="off"
+                  required
+                />
+              </div>
             </div>
-          </div>
-          <div className="pb-6">
-            <label htmlFor="password" className="block mb-2 text-base font-medium text-[#00158a]">
-              Password
-            </label>
-            <div className="relative text-[#00158a]">
-              <span className="absolute inset-y-0 left-0 flex items-center p-1 pl-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-square-asterisk"
-                >
-                  <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-                  <path d="M12 8v8"></path>
-                  <path d="m8.5 14 7-4"></path>
-                  <path d="m8.5 10 7 4"></path>
-                </svg>
-              </span>
-              <input
-                type="password"
-                name="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-12 mb-2 bg-gray-50 text-[#00158a] border focus:border-transparent border-gray-300 sm:text-sm rounded-lg ring-3 ring-transparent focus:ring-1 focus:outline-none focus:ring-gray-400 block w-full p-2.5 rounded-l-lg py-3 px-4"
-                placeholder="••••••••••"
-                autoComplete="new-password"
-                required
-              />
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                  Contraseña
+                </label>
+              </div>
+              <div className="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="••••••••••"
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
             </div>
-          </div>
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-          <button
-            type="submit"
-            className="w-full text-[#FFFFFF] bg-[#3028bf] focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-6"
-            disabled={isLoading}
-          >
-            {isLoading ? "Cargando..." : "Log In"}
-          </button>
-        </form>
+            
+            {error && (
+              <div className="text-red-500 text-sm">
+                {error}
+              </div>
+            )}
+            
+            <div>
+              <button
+                type="submit"
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500  focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                disabled={isLoading}
+              >
+                {isLoading ? "Cargando..." : "Iniciar Sesión"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
