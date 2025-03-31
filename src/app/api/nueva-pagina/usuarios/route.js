@@ -1,4 +1,5 @@
 import { executeQuery } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
@@ -6,11 +7,11 @@ export async function GET() {
       SELECT 
         u.id_usuario, 
         u.usuario, 
-        u.password, 
         n.nivel as rol,
         u.id_nivel
       FROM "Usuarios" u
       JOIN "Niveles" n ON u.id_nivel = n.id_nivel
+      ORDER BY u.id_usuario asc
     `;
     
     const result = await executeQuery(query);
@@ -49,22 +50,36 @@ export async function POST(request) {
       });
     }
 
-    // Primero insertamos el usuario
+    // Validación de contraseña
+    if (password.length < 8) {
+      return new Response(JSON.stringify({ 
+        error: "La contraseña debe tener al menos 8 caracteres" 
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Hashear la contraseña
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Insertar usuario con contraseña hasheada
     const insertQuery = `
       INSERT INTO "Usuarios" (usuario, password, id_nivel) 
       VALUES ($1, $2, $3) 
       RETURNING id_usuario
     `;
     
-    const insertResult = await executeQuery(insertQuery, [usuario, password, id_nivel]);
+    const insertResult = await executeQuery(insertQuery, [usuario, hashedPassword, id_nivel]);
     const id_usuario = insertResult[0].id_usuario;
 
-    // Luego obtenemos el usuario completo con el JOIN
+    // Obtener usuario sin mostrar la contraseña
     const selectQuery = `
       SELECT 
         u.id_usuario, 
         u.usuario, 
-        u.password, 
         n.nivel as rol,
         u.id_nivel
       FROM "Usuarios" u
@@ -93,6 +108,8 @@ export async function POST(request) {
     });
   }
 }
+
+// DELETE permanece igual
 
 export async function DELETE(request) {
   try {

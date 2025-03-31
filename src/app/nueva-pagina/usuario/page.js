@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import DeleteButton from '@/components/DeleteButton';
+import EditButton from '@/components/EditButton';
 
 export default function UserTable() {
   const [users, setUsers] = useState([]);
@@ -42,32 +44,46 @@ export default function UserTable() {
   };
 
   // Agregar nuevo usuario
-  const handleAddUser = async () => {
-    if (!newUser.usuario || !newUser.password || !newUser.id_nivel) {
-      alert('Por favor complete todos los campos');
-      return;
+ // ... (código anterior permanece igual)
+
+// Modificar handleAddUser para validar contraseña
+const handleAddUser = async () => {
+  if (!newUser.usuario || !newUser.password || !newUser.id_nivel) {
+    alert('Por favor complete todos los campos');
+    return;
+  }
+
+  // Validación básica de contraseña en el frontend
+  if (newUser.password.length < 8) {
+    alert('La contraseña debe tener al menos 8 caracteres');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/nueva-pagina/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newUser),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al crear usuario');
     }
 
-    try {
-      const response = await fetch('/api/nueva-pagina/usuarios', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newUser),
-      });
+    const createdUser = await response.json();
+    setUsers([...users, { ...createdUser, showPassword: false }]);
+    setNewUser({ usuario: '', password: '', id_nivel: 2 });
+    setShowAddForm(false);
+    setError(null);
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
-      if (!response.ok) throw new Error('Error al crear usuario');
-
-      const createdUser = await response.json();
-      setUsers([...users, { ...createdUser, showPassword: false }]);
-      setNewUser({ usuario: '', password: '', id_nivel: 2 });
-      setShowAddForm(false);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
+// ... (resto del código permanece igual)
   // Eliminar usuario
   const handleDeleteUser = async (id_usuario) => {
     if (!confirm('¿Está seguro de eliminar este usuario?')) return;
@@ -168,7 +184,6 @@ export default function UserTable() {
             <tr className="bg-gray-100">
               <th className="py-2 px-4 border-b">ID</th>
               <th className="py-2 px-4 border-b">Usuario</th>
-              <th className="py-2 px-4 border-b">Contraseña</th>
               <th className="py-2 px-4 border-b">Rol</th>
               <th className="py-2 px-4 border-b">Acciones</th>
             </tr>
@@ -178,35 +193,18 @@ export default function UserTable() {
               <tr key={user.id_usuario} className="hover:bg-gray-50">
                 <td className="py-2 px-4 border-b text-center">{user.id_usuario}</td>
                 <td className="py-2 px-4 border-b text-center">{user.usuario}</td>
-                <td className="py-2 px-4 border-b text-center">
-                  <div className="flex items-center justify-center">
-                    {user.showPassword ? user.password : '*'.repeat(user.password?.length || 0)}
-                    <button
-                      onClick={() => togglePasswordVisibility(user.id_usuario)}
-                      className="ml-2 text-blue-500 hover:text-blue-700"
-                    >
-                      {user.showPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </td>
                 <td className="py-2 px-4 border-b text-center capitalize">{user.rol}</td>
                 <td className="py-2 px-4 border-b text-center">
-                  <button
-                    onClick={() => handleDeleteUser(user.id_usuario)}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm"
-                  >
-                    Eliminar
-                  </button>
+                <div className="flex justify-center space-x-2">
+    <EditButton 
+      onClick={() => handleEditUser(user.id_usuario)}
+      size="sm"
+    />
+    <DeleteButton 
+      onClick={() => handleDeleteUser(user.id_usuario)}
+      size="sm"
+    />
+  </div>
                 </td>
               </tr>
             ))}
