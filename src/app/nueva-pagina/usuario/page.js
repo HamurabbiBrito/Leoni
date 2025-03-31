@@ -1,25 +1,40 @@
-"use client";
+// src/app/nueva-pagina/usuarios/page.js
+'use client';
 
-import { useState, useEffect } from 'react';
 import DeleteButton from '@/components/DeleteButton';
 import EditButton from '@/components/EditButton';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { APP_ROLES } from '@/constants/roles'; // Import actualizado
 
 export default function UserTable() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Estado para el nuevo usuario
   const [newUser, setNewUser] = useState({
     usuario: '',
     password: '',
     id_nivel: 2 // Valor por defecto para RH
   });
-
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Verificar autenticación y rol
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (status === 'authenticated' && session?.user?.role !== APP_ROLES.ADMIN) {
+      router.push('/unauthorized');
+    }
+  }, [status, session, router]);
 
   // Obtener usuarios al cargar el componente
   useEffect(() => {
+    if (status !== 'authenticated' || session?.user?.role !== APP_ROLES.ADMIN) return;
+
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/nueva-pagina/usuarios');
@@ -34,56 +49,45 @@ export default function UserTable() {
     };
 
     fetchUsers();
-  }, []);
-
-  // Alternar visibilidad de contraseña
-  const togglePasswordVisibility = (id_usuario) => {
-    setUsers(users.map(user => 
-      user.id_usuario === id_usuario ? { ...user, showPassword: !user.showPassword } : user
-    ));
-  };
+  }, [status, session]);
 
   // Agregar nuevo usuario
- // ... (código anterior permanece igual)
-
-// Modificar handleAddUser para validar contraseña
-const handleAddUser = async () => {
-  if (!newUser.usuario || !newUser.password || !newUser.id_nivel) {
-    alert('Por favor complete todos los campos');
-    return;
-  }
-
-  // Validación básica de contraseña en el frontend
-  if (newUser.password.length < 8) {
-    alert('La contraseña debe tener al menos 8 caracteres');
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/nueva-pagina/usuarios', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newUser),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error al crear usuario');
+  const handleAddUser = async () => {
+    if (!newUser.usuario || !newUser.password || !newUser.id_nivel) {
+      alert('Por favor complete todos los campos');
+      return;
     }
 
-    const createdUser = await response.json();
-    setUsers([...users, { ...createdUser, showPassword: false }]);
-    setNewUser({ usuario: '', password: '', id_nivel: 2 });
-    setShowAddForm(false);
-    setError(null);
-  } catch (err) {
-    setError(err.message);
-  }
-};
+    if (newUser.password.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
 
-// ... (resto del código permanece igual)
+    try {
+      const response = await fetch('/api/nueva-pagina/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.accessToken}` // Asegurar autenticación
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al crear usuario');
+      }
+
+      const createdUser = await response.json();
+      setUsers([...users, { ...createdUser, showPassword: false }]);
+      setNewUser({ usuario: '', password: '', id_nivel: 2 });
+      setShowAddForm(false);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   // Eliminar usuario
   const handleDeleteUser = async (id_usuario) => {
     if (!confirm('¿Está seguro de eliminar este usuario?')) return;
@@ -93,6 +97,7 @@ const handleAddUser = async () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.accessToken}`
         },
         body: JSON.stringify({ id_usuario }),
       });
@@ -104,6 +109,46 @@ const handleAddUser = async () => {
       setError(err.message);
     }
   };
+
+  // Función para editar usuario
+  const handleEditUser = async (id_usuario) => {
+    const userToEdit = users.find(user => user.id_usuario === id_usuario);
+    const newUsername = prompt('Nuevo nombre de usuario:', userToEdit.usuario);
+    
+    if (newUsername && newUsername !== userToEdit.usuario) {
+      try {
+        const response = await fetch('/api/nueva-pagina/usuarios', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.accessToken}`
+          },
+          body: JSON.stringify({ 
+            id_usuario,
+            usuario: newUsername 
+          }),
+        });
+
+        if (!response.ok) throw new Error('Error al actualizar usuario');
+
+        setUsers(users.map(user => 
+          user.id_usuario === id_usuario 
+            ? { ...user, usuario: newUsername } 
+            : user
+        ));
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  };
+
+  if (status !== 'authenticated' || session?.user?.role !== APP_ROLES.ADMIN) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (loading) return <div className="text-center py-8">Cargando usuarios...</div>;
   if (error) return <div className="text-red-500 text-center py-8">Error: {error}</div>;
@@ -139,6 +184,7 @@ const handleAddUser = async () => {
                 value={newUser.usuario}
                 onChange={(e) => setNewUser({ ...newUser, usuario: e.target.value })}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
               />
             </div>
             <div>
@@ -151,6 +197,8 @@ const handleAddUser = async () => {
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
+                minLength="8"
               />
             </div>
             <div>
@@ -162,6 +210,7 @@ const handleAddUser = async () => {
                 value={newUser.id_nivel}
                 onChange={(e) => setNewUser({ ...newUser, id_nivel: parseInt(e.target.value) })}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
               >
                 <option value="1">Administrador</option>
                 <option value="2">Recursos Humanos</option>
@@ -193,18 +242,21 @@ const handleAddUser = async () => {
               <tr key={user.id_usuario} className="hover:bg-gray-50">
                 <td className="py-2 px-4 border-b text-center">{user.id_usuario}</td>
                 <td className="py-2 px-4 border-b text-center">{user.usuario}</td>
-                <td className="py-2 px-4 border-b text-center capitalize">{user.rol}</td>
+                <td className="py-2 px-4 border-b text-center capitalize">
+                  {user.id_nivel === 1 ? 'Administrador' : 
+                   user.id_nivel === 2 ? 'Recursos Humanos' : 'Seguridad'}
+                </td>
                 <td className="py-2 px-4 border-b text-center">
-                <div className="flex justify-center space-x-2">
-    <EditButton 
-      onClick={() => handleEditUser(user.id_usuario)}
-      size="sm"
-    />
-    <DeleteButton 
-      onClick={() => handleDeleteUser(user.id_usuario)}
-      size="sm"
-    />
-  </div>
+                  <div className="flex justify-center space-x-2">
+                    <EditButton 
+                      onClick={() => handleEditUser(user.id_usuario)}
+                      size="sm"
+                    />
+                    <DeleteButton 
+                      onClick={() => handleDeleteUser(user.id_usuario)}
+                      size="sm"
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
