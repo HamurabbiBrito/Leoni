@@ -1,23 +1,18 @@
-export const normalizeEmployeeNumber = (input) => {
-  if (!input) return '';
+export function normalizeEmployeeNumber(rawNumber) {
+  // 1. Limpiar el input (solo números)
+  const cleaned = rawNumber.toString().replace(/[^0-9]/g, '');
 
-  // Caso 1: Si el input es solo números, eliminar el 1 inicial si existe
-  if (/^\d+$/.test(input)) {
-    return input.replace(/^1/, '').replace(/^0+/, '');
+  // 2. Aplicar las reglas específicas
+  if (/^100\d{3}$/.test(cleaned)) { // Caso 100 + 3 dígitos
+    return cleaned.slice(3); // Devuelve los últimos 3 dígitos
+  }
+  if (/^10\d{4}$/.test(cleaned)) { // Cualquier otro caso que empiece con 1 y ceros
+    return cleaned.slice(2);; // Elimina el 1 y los ceros
+  }
+  if (/^0+/.test(cleaned)) { // Caso que empiece con ceros
+    return cleaned.replace(/^0+/, ''); // Elimina los ceros iniciales
   }
 
-  // Caso 2: Para formatos como 104671A, 100578A, etc.
-  const match = input.match(/^1?(\d+)(\D?)$/); // <-- Modificado para ignorar el 1 inicial
-  if (match) {
-    const numbers = match[1]; // <- Ya no incluye el 1 inicial
-    const letter = match[2] || '';
-    
-    // Eliminar ceros iniciales (opcional, si los quieres quitar)
-    const relevantDigits = numbers.replace(/^0+/, '');
-    
-    return relevantDigits + letter;
-  }
-
-  // Caso 3: Cualquier otro formato - tomar solo los dígitos y eliminar 1 inicial
-  return input.replace(/\D/g, '').replace(/^1/, '').replace(/^0+/, '');
-};
+  // 3. Para cualquier otro caso, devolver el número completo
+  return cleaned;
+}

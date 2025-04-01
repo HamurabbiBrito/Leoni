@@ -175,7 +175,8 @@ const RegistroChecadaPage = () => {
             <input
               type="text"
               value={numeroEmpleado}
-              onChange={(e) => setNumeroEmpleado(e.target.value.replace(/\D/g, ''))}
+              //onChange={(e) => setNumeroEmpleado(e.target.value.replace(/\D/g, ''))}
+              onChange={handleNumeroChange}
               onKeyDown={handleKeyDown}
               ref={inputRef}
               className="w-1/3 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"

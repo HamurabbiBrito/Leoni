@@ -84,7 +84,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
             <div className="text-s font-light text-[#00158a] pb-8">
-          El usuario y contraseña son sensibles a las mayúsculas
+         
         </div>
               <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
                 Nombre de Usuario

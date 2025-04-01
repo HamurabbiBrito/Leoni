@@ -2,6 +2,11 @@ import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+
+  devIndicators: {
+    //buildActivity: false, // Oculta el indicador de compilación
+    buildActivityPosition: 'bottom-right', // Puedes cambiar la posición si lo deseas
+  },
   webpack: (config, { isServer, webpack }) => {
     // Configuración de alias
     config.resolve.alias = {

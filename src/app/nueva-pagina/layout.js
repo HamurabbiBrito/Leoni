@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
+import PageTransition from "@/components/PageTransition";
 
 export default function NuevaPaginaLayout({ children }) {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
@@ -231,7 +232,10 @@ export default function NuevaPaginaLayout({ children }) {
 
           {/* Contenido principal */}
           <main className="flex-1 overflow-y-auto bg-white p-6">
+            <PageTransition>
             {children}
+            </PageTransition>
+            
           </main>
         </div>
       </div>
