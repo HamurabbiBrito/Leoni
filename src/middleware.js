@@ -43,7 +43,8 @@ export async function middleware(request) {
     '/nueva-pagina/maquinaria': ['admin', 'rh', 'seguridad'],
     '/nueva-pagina/registrar': ['admin'],
     '/nueva-pagina/configuracion': ['admin', 'rh'],
-    '/dashboard': ['admin', 'rh', 'seguridad', 'user']
+    '/nueva-pagina': ['admin', 'rh'],
+    '/dashboard': ['admin', 'rh', 'seguridad']
   };
 
   // Verificar permisos para rutas protegidas

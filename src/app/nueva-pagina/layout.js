@@ -1,192 +1,240 @@
-"use client"; // Asegúrate de que este archivo se trate como un componente cliente.
+'use client';
 
-import Link from "next/link";
-import { useState } from "react";
+import { SessionProvider } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import Link from 'next/link';
 
-export default function Layout({ children }) {
-  const [isMenuCollapsed, setIsMenuCollapsed] = useState(false); // Estado para controlar si el menú está colapsado
-  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false); // Estado para controlar si el submenú está abierto
+export default function NuevaPaginaLayout({ children }) {
+  const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const { data: session } = useSession();
+  const router = useRouter();
 
-  const toggleMenu = () => {
-    setIsMenuCollapsed(!isMenuCollapsed); // Cambia el estado del menú (colapsado o expandido)
+  const toggleMenu = () => setIsMenuCollapsed(!isMenuCollapsed);
+  
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/login');
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Menú lateral (solo visible en PC) */}
-      <div
-        className={`lg:block bg-[#07063f] text-white p-4 flex flex-col transition-all duration-300 ease-in-out ${
-          isMenuCollapsed ? "w-20" : "w-64" // Ancho reducido cuando está colapsado
-        }`}
-      >
-        {/* Contenedor flexible para el ícono y el texto "Menú" */}
-        <div className="flex items-center justify-between mb-8">
-          {/* Título del menú (oculto cuando está colapsado) */}
-          <h2 className={`text-2xl font-semibold ${isMenuCollapsed ? "hidden" : "block"}`}>
-            Menú
-          </h2>
+    <SessionProvider>
+      <div className="flex flex-col h-screen">
+        {/* Barra superior */}
+        
 
-          {/* Botón para colapsar/expandir el menú */}
-          <button
-            onClick={toggleMenu}
-            className="p-2 hover:bg-gray-700 rounded"
-            title={isMenuCollapsed ? "Expandir" : "Colapsar"}
-          >
-            <svg
-              className="swap-off fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 512 512"
-            >
-              <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Enlaces del menú */}
-        <ul className="space-y-4">
-          {/* Enlace de Empleados con submenú desplegable al hover */}
-          <li
-            className="relative"
-            onMouseEnter={() => setIsSubMenuOpen(true)} // Abre el submenú al hacer hover
-            onMouseLeave={() => setIsSubMenuOpen(false)} // Cierra el submenú al salir del área
-          >
-            <Link
-              href="/nueva-pagina/empleados"
-              className={`w-full text-left p-2 hover:bg-gray-600 rounded flex items-center ${
-                isMenuCollapsed ? "justify-center" : "justify-start"
-              }`}
-              title="Empleados"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 512"
-                className="w-6 h-6 fill-current text-white"
-              >
-                <path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192l42.7 0c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0L21.3 320C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7l42.7 0C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3l-213.3 0zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352l117.3 0C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7l-330.7 0c-14.7 0-26.7-11.9-26.7-26.7z" />
-              </svg>
+        <div className="flex flex-1 overflow-hidden">
+          {/* Menú lateral */}
+          <aside className={`bg-[#07063f] text-white p-4 flex flex-col transition-all duration-300 ${
+            isMenuCollapsed ? 'w-20' : 'w-64'
+          }`}>
+            <div className="flex items-center justify-between mb-8">
               {!isMenuCollapsed && (
-                <span className="ml-2">Empleados</span>
+                <h2 className="text-2xl font-semibold">Menú</h2>
               )}
-            </Link>
-
-            {/* Submenú desplegable */}
-            {isSubMenuOpen && (
-              <ul
-                className="absolute left-full top-0 ml-2 bg-[#07063f] rounded-lg shadow-lg"
-                onMouseEnter={() => setIsSubMenuOpen(true)} // Mantiene el submenú abierto al interactuar con él
-                onMouseLeave={() => setIsSubMenuOpen(false)} // Cierra el submenú al salir del área
+              <button 
+                onClick={toggleMenu}
+                className="p-2 hover:bg-gray-700 rounded"
+                title={isMenuCollapsed ? "Expandir" : "Colapsar"}
               >
-                <li>
-                  <Link
-                    href="/nueva-pagina/empleados/lista"
-                    className="w-full text-left p-2 hover:bg-gray-600 rounded flex items-center whitespace-nowrap"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <nav className="flex-1">
+              <ul className="space-y-2">
+                {/* Ítem Empleados */}
+                <li className="relative"
+                  onMouseEnter={() => setIsSubMenuOpen(true)}
+                  onMouseLeave={() => setIsSubMenuOpen(false)}>
+                  <Link 
+                    href="/nueva-pagina/empleados" 
+                    className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                      isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    }`}
                   >
-                    Lista de empleados
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                    {!isMenuCollapsed && <span className="ml-3">Empleados</span>}
                   </Link>
+                  
+                  {isSubMenuOpen && (
+                    <ul className="absolute left-full top-0 ml-1 bg-[#07063f] rounded-md shadow-lg py-1 z-10 min-w-[200px]">
+                      <li>
+                        <Link 
+                          href="/nueva-pagina/empleados/lista" 
+                          className="block px-4 py-2 hover:bg-gray-700"
+                        >
+                          Lista de empleados
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
+                          href="/nueva-pagina/empleados/en_sa" 
+                          className="block px-4 py-2 hover:bg-gray-700"
+                        >
+                          Consulta E/S
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
                 </li>
+
+                {/* Ítem Transportes */}
                 <li>
-                  <Link
-                    href="/nueva-pagina/empleados/en_sa"
-                    className="w-full text-left p-2 hover:bg-gray-600 rounded flex items-center whitespace-nowrap"
+                  <Link 
+                    href="/nueva-pagina/transportes" 
+                    className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                      isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    }`}
                   >
-                    Consulta E/S
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-2a1 1 0 00-.293-.707l-3-3A1 1 0 0016 7h-1V5a1 1 0 00-1-1H3z" />
+                    </svg>
+                    {!isMenuCollapsed && <span className="ml-3">Transportes</span>}
                   </Link>
                 </li>
 
+                {/* Ítem Maquinaria */}
+                <li>
+                  <Link 
+                    href="/nueva-pagina/maquinaria" 
+                    className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                      isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M11.17 3a1 1 0 01.98.8l1.5 8A1 1 0 0112.66 13H9v2h2a1 1 0 110 2H7a1 1 0 110-2h2v-2H7a1 1 0 01-1-1V4a1 1 0 011-1h4.17zM7 5v6h5V5H7z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {!isMenuCollapsed && <span className="ml-3">Maquinaria y Equipo</span>}
+                  </Link>
+                </li>
+
+                {/* Ítems solo para admin */}
+                {session?.user.role === 'admin' && (
+                  <>
+                    <li>
+                      <Link 
+                        href="/nueva-pagina/registrar" 
+                        className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                          isMenuCollapsed ? 'justify-center' : 'justify-start'
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {!isMenuCollapsed && <span className="ml-3">Registrar</span>}
+                      </Link>
+                    </li>
+
+                    <li>
+                      <Link 
+                        href="/nueva-pagina/usuario" 
+                        className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                          isMenuCollapsed ? 'justify-center' : 'justify-start'
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                        </svg>
+                        {!isMenuCollapsed && <span className="ml-3">Usuarios</span>}
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
+            </nav>
+
+            {/* Sección de usuario */}
+            {session && (
+              <div className={`mt-auto pb-4 ${isMenuCollapsed ? 'text-center' : ''}`}>
+                <div className={`flex ${isMenuCollapsed ? 'flex-col items-center' : 'items-center justify-between'}`}>
+                  {!isMenuCollapsed && (
+                    <div>
+                      <p className="font-medium truncate">{session.user.name}</p>
+                      <p className="text-xs text-gray-300">{session.user.role.toUpperCase()}</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className={`p-2 hover:bg-gray-700 rounded ${
+                      isMenuCollapsed ? 'mt-2' : ''
+                    }`}
+                    title="Cerrar sesión"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 512 512"
+                      fill="currentColor"
+                    >
+                      <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z" />
+                    </svg>
+                    {!isMenuCollapsed && (
+                      <span className="ml-2 text-sm">Cerrar sesión</span>
+                    )}
+                  </button>
+                </div>
+              </div>
             )}
-          </li>
+          </aside>
 
-          {/* Otros enlaces del menú */}
-          <li>
-            <Link
-              href="/nueva-pagina/transportes"
-              className={`w-full text-left p-2 hover:bg-gray-600 rounded flex items-center ${
-                isMenuCollapsed ? "justify-center" : "justify-start"
-              }`}
-              title="Transportes"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 512"
-                className="w-6 h-6 fill-current text-white"
-              >
-                <path d="M48 0C21.5 0 0 21.5 0 48L0 368c0 26.5 21.5 48 48 48l16 0c0 53 43 96 96 96s96-43 96-96l128 0c0 53 43 96 96 96s96-43 96-96l32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64 0-32 0-18.7c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7L416 96l0-48c0-26.5-21.5-48-48-48L48 0zM416 160l50.7 0L544 237.3l0 18.7-128 0 0-96zM112 416a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm368-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z" />
-              </svg>
-              {!isMenuCollapsed && (
-                <span className="ml-2">Transportes</span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/nueva-pagina/maquinaria"
-              className={`w-full text-left p-2 hover:bg-gray-600 rounded flex items-center ${
-                isMenuCollapsed ? "justify-center" : "justify-start"
-              }`}
-              title="Máquinaria y equipo"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-                className="w-6 h-6 fill-current text-white"
-              >
-                <path d="M501.1 395.7L384 278.6c-23.1-23.1-57.6-27.6-85.4-13.9L192 158.1V96L64 0 0 64l96 128h62.1l106.6 106.6c-13.6 27.8-9.2 62.3 13.9 85.4l117.1 117.1c14.6 14.6 38.2 14.6 52.7 0l52.7-52.7c14.5-14.6 14.5-38.2 0-52.7zM331.7 225c28.3 0 54.9 11 74.9 31l19.4 19.4c15.8-6.9 30.8-16.5 43.8-29.5 37.1-37.1 49.7-89.3 37.9-136.7-2.2-9-13.5-12.1-20.1-5.5l-74.4 74.4-67.9-11.3L334 98.9l74.4-74.4c6.6-6.6 3.4-17.9-5.5-20.1-47.4-11.7-99.6.9-136.6 37.9-28.5 28.5-41.9 66.1-41.9 103.7 0 38 14.5 75.9 41.9 103.7 20 20 46.6 31 74.9 31zM64 128c-35.3 0-64-28.7-64-64S28.7 0 64 0s64 28.7 64 64-28.7 64-64 64z" />
-              </svg>
-              {!isMenuCollapsed && (
-                <span className="ml-2">Máquinaria y equipo</span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/nueva-pagina/registrar"
-              className={`w-full text-left p-2 hover:bg-gray-600 rounded flex items-center ${
-                isMenuCollapsed ? "justify-center" : "justify-start"
-              }`}
-              title="Registrar"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-                className="w-6 h-6 fill-current text-white"
-              >
-                <path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z" />
-              </svg>
-              {!isMenuCollapsed && (
-                <span className="ml-2">Registrar</span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/nueva-pagina/usuario"
-              className={`w-full text-left p-2 hover:bg-gray-600 rounded flex items-center ${
-                isMenuCollapsed ? "justify-center" : "justify-start"
-              }`}
-              title="Usuarios"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 448 512"
-                className="w-6 h-6 fill-current text-white"
-              >
-                <path d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z" />
-              </svg>
-              {!isMenuCollapsed && (
-                <span className="ml-2">Usuarios</span>
-              )}
-            </Link>
-          </li>
-        </ul>
+          {/* Contenido principal */}
+          <main className="flex-1 overflow-y-auto bg-white p-6">
+            {children}
+          </main>
+        </div>
       </div>
-
-      {/* Contenido principal */}
-      <div className="flex-1 p-8 overflow-y-auto">
-        {children} {/* Este es el contenido dinámico que cambiará según la opción seleccionada */}
-      </div>
-    </div>
+    </SessionProvider>
   );
 }
