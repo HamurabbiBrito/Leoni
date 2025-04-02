@@ -7,6 +7,8 @@ import TablaEmpleados from "./components/TablaEmpleados";
 import Paginacion from "./components/Paginacion";
 import ModalModInfoEmpleado from "./components/modals/modal_mod_info_empleados";
 import MensajeCard from "@/components/MensajeCard"; // Importar MensajeCard
+import { AuthControl } from '@/components/auth/AuthControl';
+import { APP_ROLES } from '@/constants/roles';
 
 export default function Empleados() {
   const {
@@ -60,12 +62,15 @@ export default function Empleados() {
       <h1 className="text-2xl font-bold mb-4">Empleados</h1>
 
       {/* Botón para abrir el modal en modo "registrar" */}
+      <AuthControl allowedRoles={[APP_ROLES.ADMIN,APP_ROLES.RH]}>
       <button
         className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         onClick={openModalRegistrar}
       >
         Registrar Nuevo Empleado
       </button>
+      </AuthControl>
+      
 
       {/* Pasar setEstadoChecked como prop al componente Filtros */}
       <Filtros
@@ -85,6 +90,7 @@ export default function Empleados() {
       <Paginacion page={page} totalPages={totalPages} setPage={setPage} />
 
       {/* Modal para actualizar o registrar empleados */}
+      <AuthControl allowedRoles={[APP_ROLES.ADMIN,APP_ROLES.RH]}>
       <ModalModInfoEmpleado
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -93,6 +99,8 @@ export default function Empleados() {
         setMensajeGlobal={setMensajeGlobal} // Función para mostrar mensajes globales
         modo={modoModal} // Modo del modal: 'actualizar' o 'registrar'
       />
+      </AuthControl>
+      
 
       {/* Mostrar MensajeCard como mensaje global */}
       {mensajeGlobal && (

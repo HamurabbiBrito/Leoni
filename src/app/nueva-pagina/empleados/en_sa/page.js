@@ -7,6 +7,8 @@ import Filtros from "./components/Filtros";
 import InfoEmpleado from "./components/InfoEmpleado";
 import TablaRegistros from "./components/TablaRegistros";
 import ModalRegistrarChecada from "./components/modals/modal_reg_checada";
+import { AuthControl } from '@/components/auth/AuthControl';
+import { APP_ROLES } from '@/constants/roles';
 
 export default function RegistroEntradasSalidas() {
   const [mounted, setMounted] = useState(false);
@@ -88,19 +90,21 @@ export default function RegistroEntradasSalidas() {
       <div className="flex justify-between items-center border-b pb-4">
         <h1 className="text-2xl font-bold">Consulta Entradas y Salidas</h1>
         <div className="flex space-x-2">
-          <button
+        <AuthControl allowedRoles={[APP_ROLES.ADMIN,APP_ROLES.SEGURIDAD]}>
+        <button
             onClick={openModalRegChecada}
             className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
           >
             Registrar Checada
           </button>
-
+        
           <button
             onClick={redirectToRegistrar}
             className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
           >
             Registrar 
           </button>
+          </AuthControl>
         </div>
       </div>
       
