@@ -2,7 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import PageTransition from "@/components/PageTransition";
@@ -12,6 +12,7 @@ export default function NuevaPaginaLayout({ children }) {
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   const toggleMenu = () => setIsMenuCollapsed(!isMenuCollapsed);
   
@@ -19,6 +20,9 @@ export default function NuevaPaginaLayout({ children }) {
     await signOut({ redirect: false });
     router.push('/login');
   };
+
+  // Función para determinar si un enlace está activo
+  const isActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <SessionProvider>
@@ -67,6 +71,8 @@ export default function NuevaPaginaLayout({ children }) {
                     href="/nueva-pagina/empleados" 
                     className={`flex items-center p-2 hover:bg-gray-700 rounded ${
                       isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    } ${
+                      isActive('/nueva-pagina/empleados') ? 'bg-gray-700' : ''
                     }`}
                   >
                     <svg
@@ -85,7 +91,9 @@ export default function NuevaPaginaLayout({ children }) {
                       <li>
                         <Link 
                           href="/nueva-pagina/empleados/lista" 
-                          className="block px-4 py-2 hover:bg-gray-700"
+                          className={`block px-4 py-2 hover:bg-gray-700 ${
+                            isActive('/nueva-pagina/empleados/lista') ? 'bg-gray-700' : ''
+                          }`}
                         >
                           Lista de empleados
                         </Link>
@@ -93,7 +101,9 @@ export default function NuevaPaginaLayout({ children }) {
                       <li>
                         <Link 
                           href="/nueva-pagina/empleados/en_sa" 
-                          className="block px-4 py-2 hover:bg-gray-700"
+                          className={`block px-4 py-2 hover:bg-gray-700 ${
+                            isActive('/nueva-pagina/empleados/en_sa') ? 'bg-gray-700' : ''
+                          }`}
                         >
                           Consulta E/S
                         </Link>
@@ -108,6 +118,8 @@ export default function NuevaPaginaLayout({ children }) {
                     href="/nueva-pagina/transportes" 
                     className={`flex items-center p-2 hover:bg-gray-700 rounded ${
                       isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    } ${
+                      isActive('/nueva-pagina/transportes') ? 'bg-gray-700' : ''
                     }`}
                   >
                     <svg
@@ -129,6 +141,8 @@ export default function NuevaPaginaLayout({ children }) {
                     href="/nueva-pagina/maquinaria" 
                     className={`flex items-center p-2 hover:bg-gray-700 rounded ${
                       isMenuCollapsed ? 'justify-center' : 'justify-start'
+                    } ${
+                      isActive('/nueva-pagina/maquinaria') ? 'bg-gray-700' : ''
                     }`}
                   >
                     <svg
@@ -152,9 +166,31 @@ export default function NuevaPaginaLayout({ children }) {
                   <>
                     <li>
                       <Link 
-                        href="/nueva-pagina/registrar" 
+                        href="/nueva-pagina/usuario" 
                         className={`flex items-center p-2 hover:bg-gray-700 rounded ${
                           isMenuCollapsed ? 'justify-center' : 'justify-start'
+                        } ${
+                          isActive('/nueva-pagina/usuario') ? 'bg-gray-700' : ''
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                        </svg>
+                        {!isMenuCollapsed && <span className="ml-3">Usuarios</span>}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link 
+                        href="/nueva-pagina/bitacora" 
+                        className={`flex items-center p-2 hover:bg-gray-700 rounded ${
+                          isMenuCollapsed ? 'justify-center' : 'justify-start'
+                        } ${
+                          isActive('/nueva-pagina/bitacora') ? 'bg-gray-700' : ''
                         }`}
                       >
                         <svg
@@ -169,26 +205,7 @@ export default function NuevaPaginaLayout({ children }) {
                             clipRule="evenodd"
                           />
                         </svg>
-                        {!isMenuCollapsed && <span className="ml-3">Registrar</span>}
-                      </Link>
-                    </li>
-
-                    <li>
-                      <Link 
-                        href="/nueva-pagina/usuario" 
-                        className={`flex items-center p-2 hover:bg-gray-700 rounded ${
-                          isMenuCollapsed ? 'justify-center' : 'justify-start'
-                        }`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                        </svg>
-                        {!isMenuCollapsed && <span className="ml-3">Usuarios</span>}
+                        {!isMenuCollapsed && <span className="ml-3">Bitacora</span>}
                       </Link>
                     </li>
                   </>
@@ -233,9 +250,8 @@ export default function NuevaPaginaLayout({ children }) {
           {/* Contenido principal */}
           <main className="flex-1 overflow-y-auto bg-white p-6">
             <PageTransition>
-            {children}
+              {children}
             </PageTransition>
-            
           </main>
         </div>
       </div>
