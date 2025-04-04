@@ -147,7 +147,7 @@ export default function NuevaPaginaLayout({ children }) {
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
+                      className="h-8 w-7 "
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -176,10 +176,10 @@ export default function NuevaPaginaLayout({ children }) {
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
-                          viewBox="0 0 20 20"
+                          viewBox="0 0 448 512"
                           fill="currentColor"
                         >
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                          <path d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
                         </svg>
                         {!isMenuCollapsed && <span className="ml-3">Usuarios</span>}
                       </Link>
@@ -196,14 +196,11 @@ export default function NuevaPaginaLayout({ children }) {
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
-                          viewBox="0 0 20 20"
+                          viewBox="0 0 24 24"
                           fill="currentColor"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                            clipRule="evenodd"
-                          />
+                          <path d="M3 18h18v2H3zm0-5h18v2H3zm0-5h18v2H3zm0-5h18v2H3z"/>
+                          <path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/>
                         </svg>
                         {!isMenuCollapsed && <span className="ml-3">Bitacora</span>}
                       </Link>
