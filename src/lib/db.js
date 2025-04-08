@@ -1,8 +1,7 @@
-// lib/db.js
 import { Pool } from 'pg';
 
-// PostgreSQL configuration
-const dbConfig = {
+// Crear y exportar directamente el pool
+export const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
@@ -12,60 +11,49 @@ const dbConfig = {
   idleTimeoutMillis: 60000,
   connectionTimeoutMillis: 2000,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-};
+});
 
-const pool = new Pool(dbConfig);
-
-// Universal query executor (Edge and Node compatible)
-export async function executeQuery(query, params = [], onlyRecordset = true) {
+// Versión mejorada para transacciones
+export const withTransaction = async (callback) => {
   const client = await pool.connect();
   try {
-    const result = await client.query(query, params);
-    return onlyRecordset ? result.rows : result;
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
   } catch (error) {
-    console.error("Database query error:", {
-      query: query.substring(0, 100),
-      params: params.map(p => typeof p),
-      error: error.message
-    });
-    throw new Error("Database operation failed");
+    await client.query('ROLLBACK');
+    throw error;
   } finally {
     client.release();
   }
-}
+};
 
-// Connection management functions
-export async function connectDB() {
-  if (typeof process === 'undefined') return;
-  
+// Ejecutor de queries genérico
+export const executeQuery = async (query, params = []) => {
+  const client = await pool.connect();
   try {
-    await pool.connect();
-    console.log("Database connection established");
-  } catch (error) {
-    console.error("Database connection failed:", error.message);
-    throw error;
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
   }
-}
+};
 
-export async function closePool() {
-  if (typeof process === 'undefined') return;
-  
-  try {
-    await pool.end();
-    console.log("Database connection pool closed");
-  } catch (error) {
-    console.error("Error closing connection pool:", error.message);
-  }
-}
+// Manejo de conexiones para scripts
+export const dbConfig = {
+  connect: () => pool.connect(),
+  close: () => pool.end()
+};
 
-// Node.js specific signal handling
+// Manejo de señales para cierre limpio
 if (typeof process !== 'undefined') {
-  const shutdownHandler = async (signal) => {
-    console.log(`Received ${signal}, closing database connections`);
-    await closePool();
+  const shutdown = async (signal) => {
+    console.log(`Received ${signal}, closing connections`);
+    await pool.end();
     process.exit(0);
   };
 
-  process.on("SIGINT", shutdownHandler);
-  process.on("SIGTERM", shutdownHandler);
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }

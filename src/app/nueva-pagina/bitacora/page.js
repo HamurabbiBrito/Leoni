@@ -3,103 +3,61 @@ import { withAuth } from '@/components/auth/withAuth';
 import { APP_ROLES } from '@/constants/roles';
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import es from 'date-fns/locale/es';
 
 export function Bitacora() {
   const { data: session } = useSession();
   const [registros, setRegistros] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('todos'); // 'todos', 'transportes', 'maquinaria', 'empleados', 'usuarios'
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('todos');
   const [filters, setFilters] = useState({
     fecha: '',
     accion: '',
     usuario: ''
   });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRegistros, setTotalRegistros] = useState(0);
 
-  // Datos de ejemplo
+  const fetchRegistros = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/bitacora/get?page=${page}&pageSize=${pageSize}&modulo=${activeTab}&fecha=${filters.fecha}&accion=${filters.accion}&usuario=${filters.usuario}`);
+      
+      if (!res.ok) throw new Error('Error al obtener registros');
+      
+      const data = await res.json();
+      setRegistros(data.registros);
+      setTotalRegistros(data.total);
+      setIsLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const datosEjemplo = [
-      {
-        id: 1,
-        fecha: '2023-06-15 14:30:45',
-       // usuario: 'admin@empresa.com',
-        nombre: 'Administrador',
-        modulo: 'Transportes',
-        accion: 'Registró nueva entrada',
-        detalles: 'Folio: TR-001, Fletera: Transportes MX'
-      },
-      {
-        id: 2,
-        fecha: '2023-06-15 10:15:22',
-        // usuario: session?.user?.email,
-        nombre: session?.user?.name,
-        modulo: 'Maquinaria',
-        accion: 'Creó orden de salida',
-        detalles: 'No. Salida: MAQ-002, Responsable: Carlos López'
-      },
-      {
-        id: 3,
-        fecha: '2023-06-14 16:45:10',
-        //usuario: 'rh@empresa.com',
-        nombre: 'Recursos Humanos',
-        modulo: 'Empleados',
-        accion: 'Actualizó información',
-        detalles: 'Empleado: Juan Pérez, Campo: Dirección'
-      },
-      {
-        id: 4,
-        fecha: '2023-06-14 09:20:33',
-       // usuario: session?.user?.email,
-        nombre: session?.user?.name,
-        modulo: 'Transportes',
-        accion: 'Registró salida',
-        detalles: 'Folio: TR-005, Operador: María García'
-      },
-      {
-        id: 5,
-        fecha: '2023-06-13 11:05:17',
-        //usuario: session?.user?.email,
-        nombre: session?.user?.name,
-        modulo: 'Usuarios',
-        accion: 'Cambió permisos',
-        detalles: 'Usuario: supervisor@empresa.com, Rol: Supervisor'
-      }
-    ];
-    
-    const datosFiltrados = session?.user?.role === 'admin' 
-      ? datosEjemplo 
-      : datosEjemplo.filter(reg => reg.usuario === session?.user?.email);
-    
-    setRegistros(datosFiltrados);
-    setIsLoading(false);
-  }, [session]);
+    fetchRegistros();
+  }, [page, activeTab, filters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
+    setPage(1);
   };
 
-  // Filtrar por pestaña activa y otros filtros
-  const filteredRegistros = registros.filter(reg => {
-    const matchesTab = 
-      activeTab === 'todos' || 
-      reg.modulo.toLowerCase() === activeTab.toLowerCase();
-    
-    return (
-      matchesTab &&
-      (filters.fecha === '' || reg.fecha.includes(filters.fecha)) &&
-      (filters.accion === '' || reg.accion.toLowerCase().includes(filters.accion.toLowerCase())) &&
-      (filters.usuario === '' || reg.nombre.toLowerCase().includes(filters.usuario.toLowerCase()) || 
-                               reg.usuario.toLowerCase().includes(filters.usuario.toLowerCase()))
-    );
-  });
+  const formatFecha = (fecha) => {
+    return format(new Date(fecha), "dd 'de' MMMM yyyy HH:mm", { locale: es });
+  };
 
-  // Contar registros por módulo
   const countByModule = {
-    todos: registros.length,
-    transportes: registros.filter(r => r.modulo === 'Transportes').length,
-    maquinaria: registros.filter(r => r.modulo === 'Maquinaria').length,
-    empleados: registros.filter(r => r.modulo === 'Empleados').length,
-    usuarios: registros.filter(r => r.modulo === 'Usuarios').length
+    todos: totalRegistros,
+    transportes: registros.filter(r => r.modulo === 'TRANSPORTES').length,
+    maquinaria: registros.filter(r => r.modulo === 'MAQUINARIA').length,
+    empleados: registros.filter(r => r.modulo === 'EMPLEADOS').length,
+    usuarios: registros.filter(r => r.modulo === 'USUARIOS').length
   };
 
   return (
@@ -116,65 +74,71 @@ export function Bitacora() {
         </div>
       </div>
 
-      {/* Pestañas de módulos */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-4 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('todos')}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-              activeTab === 'todos'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Todos
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('transportes')}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-              activeTab === 'transportes'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Transportes          
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('maquinaria')}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-              activeTab === 'maquinaria'
-                ? 'border-yellow-500 text-yellow-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Maquinaria
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('empleados')}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-              activeTab === 'empleados'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Empleados
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('usuarios')}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-              activeTab === 'usuarios'
-                ? 'border-red-500 text-red-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Usuarios
-          </button>
-        </nav>
-      </div>
+ {/* Pestañas de módulos */}
+<div className="border-b border-gray-200 mb-6">
+  <nav className="-mb-px flex space-x-4 overflow-x-auto">
+    {['todos', 'transportes', 'maquinaria', 'empleados', 'usuarios'].map((tab) => {
+      const isActive = activeTab === tab;
+      
+      // Clases base comunes
+      let borderColor = 'border-transparent';
+      let textColor = 'text-gray-500';
+      let badgeBg = 'bg-gray-100';
+      let badgeText = 'text-gray-600';
+      
+      // Clases cuando está activo
+      if (isActive) {
+        switch(tab) {
+          case 'todos':
+            borderColor = 'border-blue-500';
+            textColor = 'text-blue-600';
+            badgeBg = 'bg-blue-100';
+            badgeText = 'text-blue-600';
+            break;
+          case 'transportes':
+            borderColor = 'border-green-500';
+            textColor = 'text-green-600';
+            badgeBg = 'bg-green-100';
+            badgeText = 'text-green-600';
+            break;
+          case 'maquinaria':
+            borderColor = 'border-yellow-500';
+            textColor = 'text-yellow-600';
+            badgeBg = 'bg-yellow-100';
+            badgeText = 'text-yellow-600';
+            break;
+          case 'empleados':
+            borderColor = 'border-purple-500';
+            textColor = 'text-purple-600';
+            badgeBg = 'bg-purple-100';
+            badgeText = 'text-purple-600';
+            break;
+          case 'usuarios':
+            borderColor = 'border-red-500';
+            textColor = 'text-red-600';
+            badgeBg = 'bg-red-100';
+            badgeText = 'text-red-600';
+            break;
+        }
+      }
+
+      return (
+        <button
+          key={tab}
+          onClick={() => {
+            setActiveTab(tab);
+            setPage(1);
+          }}
+          className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors ${borderColor} ${textColor} ${
+            !isActive && 'hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+        </button>
+      );
+    })}
+  </nav>
+</div>
 
       {/* Filtros */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,9 +178,28 @@ export function Bitacora() {
         )}
       </div>
 
-      {/* Contador de registros */}
-      <div className="mb-4 text-sm text-gray-500">
-        Mostrando {filteredRegistros.length} registros de {activeTab === 'todos' ? 'todos los módulos' : activeTab}
+      {/* Contador y paginación */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+        <div className="text-sm text-gray-500">
+          Mostrando {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, totalRegistros)} de {totalRegistros} registros
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 border rounded-md disabled:opacity-50"
+          >
+            Anterior
+          </button>
+          <span className="px-3 py-1">Página {page}</span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page * pageSize >= totalRegistros}
+            className="px-3 py-1 border bg-blue-500 text-white rounded-md disabled:opacity-50"
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
 
       {/* Tabla de registros */}
@@ -238,25 +221,40 @@ export function Bitacora() {
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? (
               <tr>
-                <td colSpan={session?.user?.role === 'admin' ? (activeTab === 'todos' ? 5 : 4) : (activeTab === 'todos' ? 4 : 3)} className="px-6 py-4 text-center">
-                  Cargando registros...
+                <td colSpan={session?.user?.role === 'admin' ? 5 : 4} className="px-6 py-4 text-center">
+                  <div className="animate-pulse flex space-x-4">
+                    <div className="flex-1 space-y-4">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  </div>
                 </td>
               </tr>
-            ) : filteredRegistros.length > 0 ? (
-              filteredRegistros.map((registro) => (
+            ) : error ? (
+              <tr>
+                <td colSpan={session?.user?.role === 'admin' ? 5 : 4} className="px-6 py-4 text-center text-red-500">
+                  {error}
+                </td>
+              </tr>
+            ) : registros.length > 0 ? (
+              registros.map((registro) => (
                 <tr key={registro.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {registro.fecha}
+                    {formatFecha(registro.fecha_hora)}
                   </td>
                   {session?.user?.role === 'admin' && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="font-medium">{registro.nombre}</div>
-                      <div className="text-gray-500 text-xs">{registro.usuario}</div>
+                      <div className="font-medium">{registro.usuario_app}</div>
                     </td>
                   )}
                   {activeTab === 'todos' && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        registro.modulo === 'EMPLEADOS' ? 'bg-purple-100 text-purple-800' :
+                        registro.modulo === 'USUARIOS' ? 'bg-red-100 text-red-800' :
+                        registro.modulo === 'TRANSPORTES' ? 'bg-green-100 text-green-800' :
+                        registro.modulo === 'MAQUINARIA' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
                         {registro.modulo}
                       </span>
                     </td>
@@ -265,16 +263,18 @@ export function Bitacora() {
                     {registro.accion}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                    <div className="truncate" title={registro.detalles}>
-                      {registro.detalles}
+                    <div className="truncate" title={JSON.stringify(registro.detalles)}>
+                      {typeof registro.detalles === 'object' 
+                        ? JSON.stringify(registro.detalles)
+                        : registro.detalles}
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={session?.user?.role === 'admin' ? (activeTab === 'todos' ? 5 : 4) : (activeTab === 'todos' ? 4 : 3)} className="px-6 py-4 text-center text-sm text-gray-500">
-                  No se encontraron registros {activeTab === 'todos' ? '' : `en ${activeTab}`}
+                <td colSpan={session?.user?.role === 'admin' ? 5 : 4} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No se encontraron registros
                 </td>
               </tr>
             )}

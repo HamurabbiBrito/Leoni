@@ -1,6 +1,9 @@
 // app/api/nueva-pagina/usuarios/route.js
 import { executeQuery } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { registrarBitacora } from '@/lib/bitacora';
 
 export async function GET() {
   try {
@@ -51,7 +54,6 @@ export async function POST(request) {
       });
     }
 
-    // Validación de contraseña
     if (password.length < 8) {
       return new Response(JSON.stringify({ 
         error: "La contraseña debe tener al menos 8 caracteres" 
@@ -63,10 +65,8 @@ export async function POST(request) {
       });
     }
 
-    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Insertar usuario con contraseña hasheada
     const insertQuery = `
       INSERT INTO "Usuarios" (usuario, password, id_nivel) 
       VALUES ($1, $2, $3) 
@@ -76,7 +76,6 @@ export async function POST(request) {
     const insertResult = await executeQuery(insertQuery, [usuario, hashedPassword, id_nivel]);
     const id_usuario = insertResult[0].id_usuario;
 
-    // Obtener usuario sin mostrar la contraseña
     const selectQuery = `
       SELECT 
         u.id_usuario, 
@@ -89,8 +88,21 @@ export async function POST(request) {
     `;
     
     const userWithRole = await executeQuery(selectQuery, [id_usuario]);
-    
-    return new Response(JSON.stringify(userWithRole[0]), {
+    const nuevoUsuario = userWithRole[0];
+
+    // Registrar en bitácora
+    const session = await getServerSession(authOptions);
+    await registrarBitacora(
+      'USUARIOS',
+      'CREAR',
+      {
+        usuario_id: nuevoUsuario.id_usuario,
+        nombre_usuario: nuevoUsuario.usuario,
+        rol: nuevoUsuario.rol
+      }
+    );
+
+    return new Response(JSON.stringify(nuevoUsuario), {
       status: 201,
       headers: {
         'Content-Type': 'application/json'
@@ -110,8 +122,6 @@ export async function POST(request) {
   }
 }
 
-// DELETE permanece igual
-
 export async function DELETE(request) {
   try {
     const { id_usuario } = await request.json();
@@ -129,6 +139,16 @@ export async function DELETE(request) {
 
     const query = `DELETE FROM "Usuarios" WHERE id_usuario = $1`;
     await executeQuery(query, [id_usuario]);
+
+    // Registrar en bitácora
+    const session = await getServerSession(authOptions);
+    await registrarBitacora(
+      'USUARIOS',
+      'ELIMINAR',
+      {
+        usuario_id: id_usuario
+      }
+    );
     
     return new Response(JSON.stringify({ 
       message: "Usuario eliminado correctamente" 

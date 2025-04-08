@@ -44,7 +44,6 @@ export const authOptions = {
           return {
             id: user.id_usuario.toString(),
             name: user.usuario,
-            email: `${user.usuario}@tudominio.com`,
             role: userRole,
             nivel: user.nombre_nivel,
             id_nivel: user.id_nivel
