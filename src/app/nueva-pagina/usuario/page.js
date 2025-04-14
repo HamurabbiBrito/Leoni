@@ -1,4 +1,3 @@
-// src/app/nueva-pagina/usuarios/page.js
 'use client';
 
 import DeleteButton from '@/components/DeleteButton';
@@ -6,7 +5,8 @@ import EditButton from '@/components/EditButton';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { APP_ROLES } from '@/constants/roles'; // Import actualizado
+import { APP_ROLES } from '@/constants/roles';
+import EditUserModal from './components/modal';
 
 export default function UserTable() {
   const [users, setUsers] = useState([]);
@@ -15,12 +15,26 @@ export default function UserTable() {
   const [newUser, setNewUser] = useState({
     usuario: '',
     password: '',
-    id_nivel: 2 // Valor por defecto para RH
+    id_nivel: 2
   });
   const [showAddForm, setShowAddForm] = useState(false);
-  
+  const [editingUser, setEditingUser] = useState(null);
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Función reutilizable para obtener usuarios
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/nueva-pagina/usuarios');
+      if (!response.ok) throw new Error('Error al obtener usuarios');
+      const data = await response.json();
+      setUsers(data.map(user => ({ ...user, showPassword: false })));
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
   // Verificar autenticación y rol
   useEffect(() => {
@@ -34,20 +48,6 @@ export default function UserTable() {
   // Obtener usuarios al cargar el componente
   useEffect(() => {
     if (status !== 'authenticated' || session?.user?.role !== APP_ROLES.ADMIN) return;
-
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/nueva-pagina/usuarios');
-        if (!response.ok) throw new Error('Error al obtener usuarios');
-        const data = await response.json();
-        setUsers(data.map(user => ({ ...user, showPassword: false })));
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
   }, [status, session]);
 
@@ -68,7 +68,7 @@ export default function UserTable() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}` // Asegurar autenticación
+          'Authorization': `Bearer ${session?.accessToken}`
         },
         body: JSON.stringify(newUser),
       });
@@ -78,8 +78,9 @@ export default function UserTable() {
         throw new Error(errorData.error || 'Error al crear usuario');
       }
 
-      const createdUser = await response.json();
-      setUsers([...users, { ...createdUser, showPassword: false }]);
+      // Actualizar lista completa de usuarios
+      await fetchUsers();
+      
       setNewUser({ usuario: '', password: '', id_nivel: 2 });
       setShowAddForm(false);
       setError(null);
@@ -110,35 +111,33 @@ export default function UserTable() {
     }
   };
 
-  // Función para editar usuario
-  const handleEditUser = async (id_usuario) => {
-    const userToEdit = users.find(user => user.id_usuario === id_usuario);
-    const newUsername = prompt('Nuevo nombre de usuario:', userToEdit.usuario);
-    
-    if (newUsername && newUsername !== userToEdit.usuario) {
-      try {
-        const response = await fetch('/api/nueva-pagina/usuarios', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.accessToken}`
-          },
-          body: JSON.stringify({ 
-            id_usuario,
-            usuario: newUsername 
-          }),
-        });
+  // Editar usuario
+  const handleEditUser = async (formData) => {
+    try {
+      const response = await fetch('/api/nueva-pagina/usuarios', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.accessToken}`
+        },
+        body: JSON.stringify({ 
+          id_usuario: editingUser.id_usuario,
+          usuario: formData.usuario,
+          id_nivel: formData.id_nivel
+        }),
+      });
 
-        if (!response.ok) throw new Error('Error al actualizar usuario');
-
-        setUsers(users.map(user => 
-          user.id_usuario === id_usuario 
-            ? { ...user, usuario: newUsername } 
-            : user
-        ));
-      } catch (err) {
-        setError(err.message);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar usuario');
       }
+
+      await fetchUsers();
+      setEditingUser(null);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      throw err;
     }
   };
 
@@ -249,7 +248,7 @@ export default function UserTable() {
                 <td className="py-2 px-4 border-b text-center">
                   <div className="flex justify-center space-x-2">
                     <EditButton 
-                      onClick={() => handleEditUser(user.id_usuario)}
+                      onClick={() => setEditingUser(user)}
                       size="sm"
                     />
                     <DeleteButton 
@@ -263,6 +262,14 @@ export default function UserTable() {
           </tbody>
         </table>
       </div>
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSave={handleEditUser}
+        />
+      )}
     </div>
   );
 }

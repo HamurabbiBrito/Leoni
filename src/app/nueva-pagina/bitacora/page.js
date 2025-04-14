@@ -215,7 +215,7 @@ export function Bitacora() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
               )}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[700px]">Detalles</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -257,10 +257,18 @@ export function Bitacora() {
                       }`}>
                         {registro.modulo}
                       </span>
+                      
                     </td>
                   )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {registro.accion}
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                        registro.accion === 'CREAR' ? 'bg-green-100 text-green-800' :
+                        registro.accion === 'ACTUALIZAR' ? 'bg-amber-100 text-amber-800' :
+                        registro.accion === 'ELIMINAR' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {registro.accion}
+                      </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                     <div className="truncate" title={JSON.stringify(registro.detalles)}>

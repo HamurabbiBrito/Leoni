@@ -115,15 +115,6 @@ export function Transportes() {
               <span className="ml-2">Nueva Entrada</span>
             </button>
           )}
-          {/* {activeTab === 'salidas' && (
-            <button 
-              onClick={() => setShowSalidaModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-            >
-              <span className="text-lg">+</span>
-              <span className="ml-2">Nueva Salida</span>
-            </button>
-          )} */}
         </div>
       </div>
 
@@ -214,6 +205,7 @@ export function Transportes() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origen</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tractor</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estatus</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -231,6 +223,16 @@ export function Transportes() {
                       ${mov.estatus === 'Activo' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                       {mov.estatus}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {mov.tipo === 'Entrada' && mov.estatus === 'Activo' && (
+                      <button 
+                        onClick={() => handleDarSalida(mov.id)}
+                        className="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Dar Salida
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

@@ -2,260 +2,265 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import InputField from './InputField';
 import CheckboxField from './CheckboxField';
-import MensajeCard from '@/components/MensajeCard'; // Importar el componente de mensaje
 
 const ModalActualizarEmpleado = ({
   isOpen,
   onClose,
-  empleado, // Empleado existente (para modo actualización)
-  onUpdate, // Función para actualizar la lista de empleados
-  setMensajeGlobal, // Función para mostrar mensajes globales
-  modo = 'actualizar', // Modo del modal: 'actualizar' o 'registrar'
+  empleado,
+  onUpdate,
+  setMensajeGlobal,
+  modo = 'actualizar',
 }) => {
-  // Estados del formulario
-  const [numero, setNumero] = useState(empleado ? empleado.numero : '');
-  const [nombre, setNombre] = useState(empleado ? empleado.nombre : '');
-  const [area, setArea] = useState(empleado ? empleado.id_area : '');
-  const [clasificacion, setClasificacion] = useState(empleado ? empleado.clasificacion : '');
-  const [puesto, setPuesto] = useState(empleado ? empleado.puesto : 'Operador'); // Valor por defecto: 'Operador'
+  // Estados iniciales
+  const [numero, setNumero] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [area, setArea] = useState('');
+  const [clasificacion, setClasificacion] = useState('');
+  const [puesto, setPuesto] = useState('Operador');
   const [accesoRestringido, setAccesoRestringido] = useState(false);
-  const [darDeBaja, setDarDeBaja] = useState(empleado ? empleado.estado === 'Baja' : false);
+  const [darDeBaja, setDarDeBaja] = useState(false);
   const [areasOptions, setAreasOptions] = useState([]);
-  const [foto, setFoto] = useState('/images/logo.png'); // Estado para la foto del empleado
+  const [foto, setFoto] = useState('/images/logo.png');
 
-  // Obtener las áreas al abrir el modal
+  // Función para resetear todos los estados
+  const resetEstados = () => {
+    setNumero('');
+    setNombre('');
+    setArea('');
+    setClasificacion('');
+    setPuesto('');
+    setAccesoRestringido(false);
+    setDarDeBaja(false);
+    setFoto('/images/logo.png');
+  };
+
+  // Efecto principal al abrir el modal o cambiar modo
   useEffect(() => {
     if (isOpen) {
+      if (modo === 'actualizar' && empleado) {
+        cargarDatosExistente();
+      } else {
+        resetEstados();
+      }
       fetchAreas();
-    }
-  }, [isOpen]);
-
-  // Función para obtener todas las áreas y el área actual del empleado (si existe)
-  const fetchAreas = async () => {
-    try {
-      const url = `/api/nueva-pagina/empleados/lista/areas${empleado ? `?numero=${empleado.numero}` : ''}`;
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.areas) {
-        setAreasOptions(data.areas.map((area) => ({ value: area.id_area, label: area.area })));
-      }
-
-      if (data.areaEmpleado) {
-        setArea(data.areaEmpleado.id_area); // Establecer el área actual del empleado
-      }
-    } catch (error) {
-      console.error('Error al obtener las áreas:', error);
-      setMensajeGlobal({ tipo: 'error', mensaje: 'Error al obtener las áreas' });
-    }
-  };
-
-  const obtenerFoto = async (numeroEmpleado) => {
-    try {
-      const response = await fetch(`/api/test?numeroEmpleado=${numeroEmpleado}`);
-      if (!response.ok) {
-        throw new Error('Error al obtener la foto');
-      }
-      const data = await response.json();
-      if (data.foto) {
-        setFoto(data.foto); // Actualizar el estado con la ruta de la foto
-      }
-    } catch (error) {
-      console.error('Error al obtener la foto:', error);
-      setMensajeGlobal({ tipo: 'error', mensaje: 'Error al obtener la foto del empleado' });
-    }
-  };
-
-  // Actualizar el estado cuando el empleado cambie (solo en modo actualización)
-  useEffect(() => {
-    if (isOpen && empleado && modo === 'actualizar') {
-      setNumero(empleado.numero);
-      setNombre(empleado.nombre);
-      setArea(empleado.id_area);
-      setClasificacion(empleado.clasificacion);
-      setPuesto(empleado.puesto || 'Operador'); // Asegúrate de que `puesto` tenga un valor por defecto
-      setAccesoRestringido(false);
-      setDarDeBaja(empleado.estado === 'Baja');
-
-      // Obtener la foto del empleado
-      obtenerFoto(empleado.numero);
-
-      console.log("Estados inicializados:", { numero, nombre, area, clasificacion, puesto });
     }
   }, [isOpen, empleado, modo]);
 
-  // Función para manejar el guardado de los datos
+  // Cargar datos del empleado existente
+  const cargarDatosExistente = async () => {
+    setNumero(empleado.numero);
+    setNombre(empleado.nombre);
+    setArea(empleado.id_area);
+    setClasificacion(empleado.clasificacion);
+    setPuesto(empleado.puesto || 'Operador');
+    setDarDeBaja(empleado.estado === 'Baja');
+    await obtenerFoto(empleado.numero);
+  };
+
+  // Obtener áreas disponibles
+  const fetchAreas = async () => {
+    try {
+      const url = `/api/nueva-pagina/empleados/lista/areas${
+        modo === 'actualizar' && empleado ? `?numero=${empleado.numero}` : ''
+      }`;
+      const response = await fetch(url);
+      const data = await response.json();
+  
+      // Agregar opción predeterminada al principio del array
+      const areasConDefault = [
+        { id_area: '', area: 'Selecciona una opción' }, // Opción predeterminada
+        ...(data.areas || []) // Resto de áreas de la base de datos
+      ];
+  
+      setAreasOptions(
+        areasConDefault.map((area) => ({
+          value: area.id_area,
+          label: area.area,
+          // Deshabilitar solo la opción predeterminada
+          disabled: area.id_area === ''
+        }))
+      );
+  
+      // Establecer valor inicial según el modo
+      if (modo === 'actualizar' && data.areaEmpleado) {
+        setArea(data.areaEmpleado.id_area); // Valor actual en actualización
+      } else {
+        setArea(''); // Valor inicial vacío para registro
+      }
+    } catch (error) {
+      console.error('Error al obtener áreas:', error);
+      setMensajeGlobal({ tipo: 'error', mensaje: 'Error al cargar las áreas' });
+    }
+  };
+
+  // Obtener foto del empleado
+  const obtenerFoto = async (numeroEmpleado) => {
+    try {
+      const response = await fetch(`/api/test?numeroEmpleado=${numeroEmpleado}`);
+      if (response.ok) {
+        const data = await response.json();
+        data.foto && setFoto(data.foto);
+      }
+    } catch (error) {
+      console.error('Error al obtener foto:', error);
+    }
+  };
+
+  // Manejar cierre del modal
+  const handleClose = () => {
+    onClose();
+    resetEstados();
+  };
+
+  // Enviar formulario
   const handleGuardar = async () => {
     try {
-      // Validar campos obligatorios
-      console.log("Valores de los campos:", { nombre, area, clasificacion, puesto });
-      if (!nombre || !area || !clasificacion || !puesto || puesto === '') {
-        throw new Error('Todos los campos son obligatorios');
+      if (!nombre || !area || !clasificacion || !puesto) {
+        throw new Error('Todos los campos marcados con * son obligatorios');
       }
 
-      // Determinar el estado basado en el checkbox "Dar de baja"
-      const estado = darDeBaja ? 'Baja' : 'Activo';
-
-      // Datos a enviar
-      const datosEmpleado = {
-        // Solo incluir el número en modo actualización
-        ...(modo === 'actualizar' && { numero: empleado.numero }), // Usar el número del empleado existente en modo actualización
+      const datos = {
+        ...(modo === 'actualizar' && { numero: empleado.numero }),
         nombre,
         id_area: area,
         clasificacion,
         puesto,
-        estado,
+        estado: darDeBaja ? 'Baja' : 'Activo',
       };
 
-      // URL y método HTTP según el modo
-      const url =
-        modo === 'registrar'
-          ? '/api/nueva-pagina/empleados/lista/registrar'
-          : '/api/nueva-pagina/empleados/lista/actualizar';
-      const method = modo === 'registrar' ? 'POST' : 'PUT';
+      const url = modo === 'registrar' 
+        ? '/api/nueva-pagina/empleados/lista/registrar' 
+        : '/api/nueva-pagina/empleados/lista/actualizar';
 
-      // Enviar los datos al backend
       const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosEmpleado),
+        method: modo === 'registrar' ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Error al ${modo === 'registrar' ? 'registrar' : 'actualizar'} el empleado`);
+        throw new Error(errorData.error || 'Error en la operación');
       }
 
-      const resultado = await response.json();
-      console.log('Empleado guardado:', resultado);
-
-      // Mostrar mensaje de éxito global
       setMensajeGlobal({
         tipo: 'exito',
-        mensaje: `Empleado ${modo === 'registrar' ? 'registrado' : 'actualizado'} correctamente`,
+        mensaje: `Empleado ${modo === 'registrar' ? 'registrado' : 'actualizado'} correctamente`
       });
 
-      // Cerrar el modal después de guardar
       setTimeout(() => {
-        onClose();
-      }, 2000); // Cerrar el modal después de 2 segundos
+        handleClose();
+        onUpdate?.();
+      }, 1500);
 
-      // Actualizar la lista de empleados
-      if (onUpdate) {
-        onUpdate(); // Llama a la función de actualización
-      }
     } catch (error) {
-      console.error('Error al guardar los cambios:', error);
       setMensajeGlobal({ tipo: 'error', mensaje: error.message });
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
-  // Opciones para los campos de selección
+  // Opciones para selects
   const clasificacionOptions = [
-    { value: 'A', label: 'Seleccione una opcion' },
+    { value: '', label: 'Seleccione una opción' },
     { value: 'Administrativo', label: 'Administrativo' },
     { value: 'Directo', label: 'Directo' },
     { value: 'Indirecto', label: 'Indirecto' },
   ];
 
   const puestoOptions = [
+    { value: '', label: 'Seleccione una opción' },
     { value: 'Supervisor', label: 'Supervisor' },
     { value: 'Operador', label: 'Operador' },
     { value: 'Gerente', label: 'Gerente' },
   ];
 
+  if (!isOpen) return null;
+
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <h2 className="text-xl font-bold mb-6">
-          {modo === 'registrar' ? 'Registrar Nuevo Empleado' : 'Actualizar Información'}
-        </h2>
-        <div className="flex gap-8">
-          {/* Columna izquierda: Imagen y campos de solo lectura */}
-          <div className="w-1/2">
-            <div className="mb-6 flex justify-center">
-              <img
-                src={foto} // Usar el estado `foto`
-                alt="Empleado"
-                className="w-32 h-32 rounded-md"
-              />
-            </div>
-            <InputField
-              label="Número de empleado"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-              disabled={modo === 'actualizar'} // Deshabilitar en modo actualización
-            />
-            <InputField
-              label="Nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              disabled={modo === 'actualizar'} // Deshabilitar en modo actualización
+    <Modal isOpen={isOpen} onClose={handleClose}>
+      <h2 className="text-xl font-bold mb-6">
+        {modo === 'registrar' ? 'Registro de Nuevo Empleado' : 'Editar Empleado'}
+      </h2>
+
+      <div className="flex gap-8">
+        {/* Columna Izquierda - Foto y campos fijos */}
+        <div className="w-1/2">
+          <div className="mb-6 flex justify-center">
+            <img
+              src={foto}
+              alt="Foto empleado"
+              className="w-50 h-50 rounded-md object-cover border-4 border-white shadow-lg"
             />
           </div>
-
-          {/* Columna derecha: Campos editables y botones */}
-          <div className="w-1/2">
-            <InputField
-              label="Área"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              isSelect
-              options={areasOptions}
-            />
-            <InputField
-              label="Clasificación"
-              value={clasificacion}
-              onChange={(e) => setClasificacion(e.target.value)}
-              isSelect
-              options={clasificacionOptions}
-            />
-            <InputField
-              label="Puesto"
-              value={puesto}
-              onChange={(e) => setPuesto(e.target.value)}
-              isSelect
-              options={puestoOptions}
-            />
-            <div className="mb-4 flex gap-4">
-              <CheckboxField
-                label="Acceso Restringido"
-                checked={accesoRestringido}
-                onChange={(e) => setAccesoRestringido(e.target.checked)}
-              />
-              <CheckboxField
-                label="Dar de Baja"
-                checked={darDeBaja}
-                onChange={(e) => setDarDeBaja(e.target.checked)}
-                disabled={modo === 'registrar'} // Deshabilitar en modo registro
-              />
-            </div>
-          </div>
+          
+          <InputField
+            label="Nombre completo *"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            disabled={modo === 'actualizar'}
+            className={modo === 'actualizar' ? 'bg-gray-50 cursor-not-allowed' : ''}
+          />
         </div>
 
-        {/* Botones de acción */}
-        <div className="flex justify-end mt-6">
-          <button
-            className="mr-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={handleGuardar}
-          >
-            {modo === 'registrar' ? 'Registrar' : 'Guardar'}
-          </button>
+        {/* Columna Derecha - Campos editables */}
+        <div className="w-1/2 space-y-4">
+          <InputField
+            label="Área *"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            isSelect
+            options={areasOptions}
+          />
+
+          <InputField
+            label="Clasificación *"
+            value={clasificacion}
+            onChange={(e) => setClasificacion(e.target.value)}
+            isSelect
+            options={clasificacionOptions}
+          />
+
+          <InputField
+            label="Puesto *"
+            value={puesto}
+            onChange={(e) => setPuesto(e.target.value)}
+            isSelect
+            options={puestoOptions}
+          />
+
+{modo === 'actualizar' && (
+  <div className="flex gap-4 mt-4">
+    <CheckboxField
+      label="Acceso restringido"
+      checked={accesoRestringido}
+      onChange={(e) => setAccesoRestringido(e.target.checked)}
+    />
+
+    <CheckboxField
+      label="Dar de baja"
+      checked={darDeBaja}
+      onChange={(e) => setDarDeBaja(e.target.checked)}
+    />
+  </div>
+)}
         </div>
-      </Modal>
-    </>
+      </div>
+
+      {/* Botones de acción */}
+      <div className="flex justify-end gap-3 mt-8">
+        <button
+          onClick={handleClose}
+          className="px-5 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleGuardar}
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          {modo === 'registrar' ? 'Registrar' : 'Guardar cambios'}
+        </button>
+      </div>
+    </Modal>
   );
 };
 

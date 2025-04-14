@@ -8,7 +8,7 @@ export default function TablaEmpleados({ empleados, openModal }) {
               <th className="px-4 py-2 text-left text-black">Numero</th>
               <th className="px-4 py-2 text-left text-black">Nombre</th>
               <th className="px-4 py-2 text-left text-black">Estado</th>
-              <th className="px-4 py-2 text-left text-black">Brigada</th>
+              {/* <th className="px-4 py-2 text-left text-black">Brigada</th> */}
               <th className="px-4 py-2 text-left text-black">Clasificación</th>
             </tr>
           </thead>
@@ -22,7 +22,7 @@ export default function TablaEmpleados({ empleados, openModal }) {
                 <td className="px-4 py-2 text-black">{empleado.numero}</td>
                 <td className="px-4 py-2 text-black">{empleado.nombre}</td>
                 <td className="px-4 py-2 text-black">{empleado.estado}</td>
-                <td className="px-4 py-2 text-black">{empleado.brigada}</td>
+                {/* <td className="px-4 py-2 text-black">{empleado.brigada}</td> */}
                 <td className="px-4 py-2 text-black">{empleado.clasificacion}</td>
               </tr>
             ))}

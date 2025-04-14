@@ -60,19 +60,6 @@ export async function POST(request) {
     await client.query('ROLLBACK');
     console.error('Error en transacción:', error);
     
-    // Registrar error fuera de transacción
-    await pool.query(
-      `INSERT INTO "Bitacora" 
-      (usuario_app, modulo, accion, detalles, fecha_hora)
-      VALUES ($1, $2, $3, $4, NOW())`,
-      [
-        'Sistema',
-        'EMPLEADOS',
-        'ERROR',
-        `Accion=CREAR, Error=${error.message}`
-      ]
-    );
-
     return new Response(JSON.stringify({ 
       error: 'Error en el registro',
       detalle: error.message 
