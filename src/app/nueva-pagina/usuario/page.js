@@ -153,7 +153,7 @@ export default function UserTable() {
   if (error) return <div className="text-red-500 text-center py-8">Error: {error}</div>;
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-6 bg-gray-50 rounded-xl shadow-md shadow-gray-300">
       <h1 className="text-2xl font-bold mb-6">Gestión de Usuarios</h1>
       
       {error && (
